@@ -12,12 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function ($router) {
             Route::prefix('api')
                 ->middleware('api')
-                ->group(base_path('Modules/Asset/Presentation/Api/routes.php'));
+                ->group(base_path('Modules/System/Presentation/Api/routes.php'));
+            Route::prefix('api')
+                ->middleware('api')
+                ->group(base_path('Modules/Auth/Presentation/Api/routes.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+
     })->create();
