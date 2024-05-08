@@ -32,10 +32,9 @@ return [
     'connections' => [
         'mongodb' => [
             'driver' => 'mongodb',
-            //'dsn' => env('DB_URI', 'mongodb+srv://username:password@<atlas-cluster-uri>/myappdb?retryWrites=true&w=majority'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '27017'),
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => env('DB_DATABASE', ''),
             'username' => env('DB_USERNAME', ''),
             'password' => env('DB_PASSWORD', ''),
         ],

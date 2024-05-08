@@ -24,27 +24,20 @@ class Sso
     public function handle(Request $request, Closure $next): Response
     {
         try{
-            $checkJwtToken=$this->_validateJwtToken($request->token);
+            $checkJwtToken=$this->_validateJwtToken($request->bearerToken());
             if($checkJwtToken===true)
-                $resource=AuthResource::from([
-                    "success"=>true,
-                    "message"=>"The token is valid",
-                    "data"=>null,
-                    "error"=>"",
-                    "response_status"=>200
-                ]);
+                return $next($request);
             else
                 throw new \Exception($checkJwtToken->getMessage());
         }catch (\Exception $e) {
             // Token could not be parsed
             $resource=AuthResource::from([
                 "success"=>false,
-                "message"=>"",
+                "message"=>"The token is invalid",
                 "data"=>null,
                 "error"=>$e->getMessage(),
                 "response_status"=>401
             ]);
-        }finally {
             return response()->json($resource,$resource->responseStatus);
         }
     }
@@ -58,13 +51,22 @@ class Sso
         $key = new HmacKey(env("JWT_SIGNING_KEY"));
         $signer = new HS256($key);
         $validator = new DefaultValidator();
+        //validate the issuer
+        $validator->addRequiredRule('iss', new NotEmpty());
+        $validator->addRequiredRule('iss', new NotNull());
+        //validate the subject
+        $validator->addRequiredRule('sub', new NotEmpty());
+        $validator->addRequiredRule('sub', new NotNull());
+        //validate expiration
         $validator->addOptionalRule('exp', new NewerThan(time()));
         $validator->addRequiredRule('exp', new NotEmpty());
         $validator->addRequiredRule('exp', new NotNull());
+        //validate email
+        $validator->addRequiredRule('email', new NotEmpty());
+        $validator->addRequiredRule('email', new NotNull());
         try {
             $parser = new Parser($signer,$validator);
             $parser->parse($jwt);
-            dd($parser->parse($jwt));
         }catch (\Exception $e){
             return $e;
         }
