@@ -40,11 +40,19 @@ class AuthService
                 if($user===null){
                     //create a new user
                     $sessionToken=$this->authRepository->createUser($email['email'],$email['sub']);
-                    dd($sessionToken);
                 }else{
                     //login user
-                    dd($user->createToken('api_token')->plainTextToken);
+                    $sessionToken=$user->createToken('api_token')->plainTextToken;
                 }
+                return [
+                    "success"=>true,
+                    "message"=>"",
+                    "data"=>[
+                        "session_token"=>$sessionToken
+                    ],
+                    "error"=>"",
+                    "response_status"=>200
+                ];
             }else{
                 throw new \Exception("The email claim doesn't exists");
             }
@@ -57,9 +65,30 @@ class AuthService
                 "response_status"=>401
             ];
         }
+    }
 
-
-
+    /**
+     * Get user info
+     * @return array
+     */
+    public function getUserInfo():array{
+        try {
+            return [
+                "success"=>true,
+                "message"=>"",
+                "data"=>auth('sanctum')->user()->toArray(),
+                "error"=>"",
+                "response_status"=>200
+            ];
+        }catch (\Exception $e){
+            return [
+                "success"=>false,
+                "message"=>"Forbidden",
+                "data"=>null,
+                "error"=>$e->getMessage(),
+                "response_status"=>401
+            ];
+        }
     }
 
 }

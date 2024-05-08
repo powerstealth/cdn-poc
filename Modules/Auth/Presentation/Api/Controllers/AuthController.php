@@ -37,4 +37,16 @@ class AuthController extends Controller
         return response()->json($resource,$resource->responseStatus);
     }
 
+    /**
+     * Get user info using the session token
+     * @param AuthRequest $request
+     * @return JsonResponse|null
+     */
+    public function userInfo(AuthRequest $request):null|JsonResponse
+    {
+        //get the thumbnail
+        $response=$this->authService->getUserInfo();
+        $resource=AuthResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
 }
