@@ -44,7 +44,6 @@ class AuthController extends Controller
      */
     public function userInfo(AuthRequest $request):null|JsonResponse
     {
-        //get the thumbnail
         $response=$this->authService->getUserInfo();
         $resource=AuthResource::from($response);
         return response()->json($resource,$resource->responseStatus);
