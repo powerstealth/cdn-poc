@@ -10,8 +10,8 @@ interface AssetRepositoryInterface
         string $status,
         string $title,
         string $description,
-        string $s3SessionKey,
-        string $fileType,
+        string $fileName,
+        string $presignedUrl,
         int $fileLength,
         bool $clyUpTv,
         bool $clyUpFrontStore

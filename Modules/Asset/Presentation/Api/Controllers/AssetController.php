@@ -32,8 +32,8 @@ class AssetController extends Controller
     public function setUploadSession(AssetUploadSessionRequest $request):null|JsonResponse
     {
         $response=$this->assetService->setUploadSession(
+            $request->data()->file_name,
             $request->data()->file_length,
-            $request->data()->file_type,
             $request->data()->scope_clyup_tv,
             $request->data()->scope_clyup_front_store
         );

@@ -20,9 +20,8 @@ return new class extends Migration
             $table->string('status',100)->index();
             $table->string('data.title',254)->index();
             $table->longText('data.description');
-            $table->string('ingest.s3.key',254);
+            $table->string('ingest.s3.presigned_url');
             $table->integer('ingest.file_length');
-            $table->string('ingest.file_type',100);
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             $table->softDeletes();

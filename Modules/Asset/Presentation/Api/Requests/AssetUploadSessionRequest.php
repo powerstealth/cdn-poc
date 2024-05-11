@@ -19,8 +19,8 @@ class AssetUploadSessionRequest extends FormRequest
     public function rules()
     {
         return [
+            'file_name' => 'string|required',
             'file_length' => 'integer|required|min:1000000',
-            'file_type' => 'string|required|in:'.implode(",",array_keys(self::getAllowedMediaFiles())),
             'scope_clyup_tv' => 'bool|required',
             'scope_clyup_front_store' => 'bool|required',
         ];

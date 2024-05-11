@@ -2,10 +2,9 @@
 
 namespace Modules\Asset\Domain\Services;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
@@ -23,21 +22,22 @@ class AssetService
 
     /**
      * Get user info
+     * @param string $fileName
      * @param int    $fileLength
-     * @param string $fileType
      * @param bool   $clyUpTv
      * @param bool   $clyUpFrontStore
      * @return array
      */
-    public function setUploadSession(int $fileLength, string $fileType, bool $clyUpTv, bool $clyUpFrontStore):array{
-        $sessionKey=(string)rand(100000000000000,999999999999999);
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$sessionKey,$fileType,$fileLength,$clyUpTv,$clyUpFrontStore);
+    public function setUploadSession(string $fileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore):array{
+        $fileName=Str::orderedUuid()."";
+        $presignedUrl = Storage::disk('s3')->temporaryUploadUrl($fileName, now()->addMinutes(60));
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,$presignedUrl["url"],$fileLength,$clyUpTv,$clyUpFrontStore);
         return [
             "success"=>true,
             "message"=>"",
             "data"=>[
                 "asset_id" => $asset->id,
-                "session_key" => $sessionKey
+                "presigned_url" => $presignedUrl["url"]
             ],
             "error"=>"",
             "response_status"=>200

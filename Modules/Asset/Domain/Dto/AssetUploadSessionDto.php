@@ -9,15 +9,15 @@ class AssetUploadSessionDto extends Data
 {
     /**
      * Constructor
+     * @param string $file_name
      * @param int    $file_length
-     * @param string $file_type
      * @param bool   $scope_clyup_tv
      * @param bool   $scope_clyup_front_store
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
+        public string $file_name,
         public int $file_length,
-        public string $file_type,
         public bool $scope_clyup_tv,
         public bool $scope_clyup_front_store,
     ){}
@@ -29,8 +29,8 @@ class AssetUploadSessionDto extends Data
     public static function fromRequest(Request $request): static
     {
         return new self(
+            $request->file_name,
             $request->file_length,
-            $request->file_type,
             $request->scope_clyup_tv,
             $request->scope_clyup_front_store,
         );

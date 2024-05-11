@@ -11,7 +11,8 @@
         "laravel/tinker": "^2.9",
         "miladrahimi/php-jwt": "3.*",
         "mongodb/laravel-mongodb": "^4.3",
-        "spatie/laravel-data": "4.*"
+        "spatie/laravel-data": "4.*",
+        "league/flysystem-aws-s3-v3": "3.*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

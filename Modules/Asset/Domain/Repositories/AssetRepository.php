@@ -16,8 +16,8 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string $status
      * @param string $title
      * @param string $description
-     * @param string $s3SessionKey
-     * @param string $fileType
+     * @param string $fileName
+     * @param string $presignedUrl
      * @param int    $fileLength
      * @param bool   $clyUpTv
      * @param bool   $clyUpFrontStore
@@ -27,24 +27,25 @@ class AssetRepository implements AssetRepositoryInterface
         string $status,
         string $title,
         string $description,
-        string $s3SessionKey,
-        string $fileType,
+        string $fileName,
+        string $presignedUrl,
         int $fileLength,
         bool $clyUpTv,
         bool $clyUpFrontStore
     ): Asset|\Exception{
         $asset=new Asset();
         $asset->status=$status;
+        $asset->file_name=$fileName;
         $asset->data=[
             'title'=>$title,
             'description'=>$description
         ];
         $asset->ingest=[
             's3'=>[
-                'session_key'=>$s3SessionKey
+                'presigned_url'=>$presignedUrl
             ],
             'file'=>[
-                'type'=>$fileType,
+                'original_filename'=>$fileName,
                 'length'=>$fileLength
             ],
         ];
