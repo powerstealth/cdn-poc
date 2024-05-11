@@ -29,9 +29,9 @@ class AssetController extends Controller
      * @param AssetUploadSessionRequest $request
      * @return JsonResponse|null
      */
-    public function getUploadSession(AssetUploadSessionRequest $request):null|JsonResponse
+    public function setUploadSession(AssetUploadSessionRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->getUploadSession(
+        $response=$this->assetService->setUploadSession(
             $request->data()->file_length,
             $request->data()->file_type,
             $request->data()->scope_clyup_tv,

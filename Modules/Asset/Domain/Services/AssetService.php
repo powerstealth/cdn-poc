@@ -29,7 +29,7 @@ class AssetService
      * @param bool   $clyUpFrontStore
      * @return array
      */
-    public function getUploadSession(int $fileLength, string $fileType, bool $clyUpTv, bool $clyUpFrontStore):array{
+    public function setUploadSession(int $fileLength, string $fileType, bool $clyUpTv, bool $clyUpFrontStore):array{
         $sessionKey=(string)rand(100000000000000,999999999999999);
         $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$sessionKey,$fileType,$fileLength,$clyUpTv,$clyUpFrontStore);
         return [
