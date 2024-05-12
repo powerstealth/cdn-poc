@@ -6,10 +6,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
-use Modules\Asset\Presentation\Api\Requests\AssetMultipartUploadRequest;
 use Modules\Asset\Presentation\Api\Resources\AssetResource;
+use Modules\Asset\Presentation\Api\Requests\AssetMultipartUploadRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUploadSessionRequest;
-use Modules\Asset\Presentation\Api\Resources\AssetMultipleUploadRequest;
 
 class AssetController extends Controller
 {
@@ -63,25 +62,4 @@ class AssetController extends Controller
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
-/*
-    public function startMultipartUpload(Request $request):null|JsonResponse
-    {
-        $response=$this->assetService->startMultipartUpload();
-        $resource=AssetResource::from($response);
-        return response()->json($resource,$resource->responseStatus);
-    }
-
-    public function signMultipartUpload(string $id, int $nr):null|JsonResponse
-    {
-        $response=$this->assetService->signMultipartUpload($id,$nr);
-        $resource=AssetResource::from($response);
-        return response()->json($resource,$resource->responseStatus);
-    }
-
-    public function completeMultipartUpload(string $id):null|JsonResponse
-    {
-        $response=$this->assetService->completeMultipartUpload($id);
-        $resource=AssetResource::from($response);
-        return response()->json($resource,$resource->responseStatus);
-    }*/
 }

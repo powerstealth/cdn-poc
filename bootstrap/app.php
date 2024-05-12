@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use \Modules\Asset\Presentation\Cli\Commands\ExpiredMultipartUpload;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('Modules/Asset/Presentation/Api/routes.php'));
         }
     )
+    ->withCommands([
+        ExpiredMultipartUpload::class,
+    ])
     ->withMiddleware(function (Middleware $middleware) {
         //$middleware->statefulApi();
     })

@@ -2,8 +2,10 @@
 
 namespace Modules\Asset\Domain\Services;
 
+use Carbon\Carbon;
 use Aws\S3\S3Client;
 use Illuminate\Support\Str;
+use Aws\Api\DateTimeResult;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
@@ -154,6 +156,7 @@ class AssetService
      * Complete the multipart uploads
      * @param string $assetId
      * @return array
+     * @throws \Exception
      */
     public function _completeMultipartUpload(string $assetId):array{
         //check if the asset exists
@@ -196,5 +199,35 @@ class AssetService
             "error"=>"",
             "response_status"=>200
         ];
+    }
+
+    /**
+     * Purge Expired Uploads
+     * @return void
+     */
+    public function purgeExpiredUploads():void
+    {
+        try {
+            //get the list of multipart uploads
+            $uploads = $this->s3Client->listMultipartUploads([
+                'Bucket' => env("AWS_BUCKET"),
+            ]);
+            if(isset($uploads["Uploads"])){
+                foreach ($uploads["Uploads"] as $upload){
+                    $uploadDateTime = Carbon::instance($upload["Initiated"])->addSeconds((int)env("AWS_PRESIGNED_TIME"));
+                    $currentDateTime = Carbon::now();
+                    if($uploadDateTime->lt($currentDateTime)) {
+                        //remove upload
+                        $this->s3Client->abortMultipartUpload([
+                            'Bucket'   => env("AWS_BUCKET"),
+                            'Key'      => $upload["Key"],
+                            'UploadId' => $upload["UploadId"],
+                        ]);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            echo "Error: " . $e->getMessage() . "\n";
+        }
     }
 }
