@@ -2,28 +2,34 @@
 
 namespace Modules\Asset\Domain\Services;
 
-use Carbon\Carbon;
 use Aws\S3\S3Client;
 use Illuminate\Support\Str;
-use Aws\Api\DateTimeResult;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
+use Modules\Asset\Domain\Actions\PurgeExpiredUploads;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
 class AssetService
 {
     protected AssetRepository $assetRepository;
+    protected PurgeExpiredUploads $purgeExpiredUploads;
 
     protected S3Client $s3Client;
 
     /**
      * Constructor
-     * @param AssetRepository $assetRepository
+     * @param AssetRepository       $assetRepository
+     * @param PurgeExpiredUploads $purgeExpiredUploads
      */
-    public function __construct(AssetRepository $assetRepository){
-        //initialize asset repository
+    public function __construct(
+        AssetRepository $assetRepository,
+        PurgeExpiredUploads $purgeExpiredUploads
+    ){
+        //initialize the asset repository
         $this->assetRepository=$assetRepository;
+        //initialize the actions repository
+        $this->purgeExpiredUploads=$purgeExpiredUploads;
         //initialize S3 client
         $this->_initS3Client();
     }
@@ -207,27 +213,9 @@ class AssetService
      */
     public function purgeExpiredUploads():void
     {
-        try {
-            //get the list of multipart uploads
-            $uploads = $this->s3Client->listMultipartUploads([
-                'Bucket' => env("AWS_BUCKET"),
-            ]);
-            if(isset($uploads["Uploads"])){
-                foreach ($uploads["Uploads"] as $upload){
-                    $uploadDateTime = Carbon::instance($upload["Initiated"])->addSeconds((int)env("AWS_PRESIGNED_TIME"));
-                    $currentDateTime = Carbon::now();
-                    if($uploadDateTime->lt($currentDateTime)) {
-                        //remove upload
-                        $this->s3Client->abortMultipartUpload([
-                            'Bucket'   => env("AWS_BUCKET"),
-                            'Key'      => $upload["Key"],
-                            'UploadId' => $upload["UploadId"],
-                        ]);
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            echo "Error: " . $e->getMessage() . "\n";
-        }
+        //remove S3 multipart uploads
+        $this->purgeExpiredUploads->expiredMultipartUploads($this->s3Client);
+        //remove expired assets
+        $this->purgeExpiredUploads->expiredAssets($this->assetRepository);
     }
 }

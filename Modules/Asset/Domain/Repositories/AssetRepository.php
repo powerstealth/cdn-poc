@@ -61,9 +61,47 @@ class AssetRepository implements AssetRepositoryInterface
         return $asset;
     }
 
+    /**
+     * Get an asset
+     * @param string $id
+     * @return Asset
+     */
     public function getAsset(string $id):Asset
     {
         return Asset::find($id);
+    }
+
+    /**
+     * Delete an asset
+     * @param string      $id
+     * @param string|null $status
+     * @return bool
+     */
+    public function deleteAsset(string $id, ?string $status=null):bool
+    {
+        $asset=Asset::find($id);
+        if($status!==null){
+            $asset->status=$status;
+            $asset->save();
+        }
+        return $asset->delete();
+    }
+
+    /**
+     * @param array $filters
+     * @return array
+     */
+    public function listAssets(array $filters):array
+    {
+        $assets=new Asset();
+        //add filters
+        if(count($filters)>0){
+            foreach ($filters as $filter){
+                $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+            }
+        }
+        $assets=$assets->get()->toArray();
+        return $assets;
     }
 
 }

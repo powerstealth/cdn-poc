@@ -8,6 +8,7 @@ enum AssetStatusEnum:string implements EnumInterface{
     case UPLOAD = "Upload session start";
     case UPLOADING = "Uploading";
     case UPLOADED = "Uploaded session is over";
+    case ERROR = "Error";
 
     /**
      * Return all names
