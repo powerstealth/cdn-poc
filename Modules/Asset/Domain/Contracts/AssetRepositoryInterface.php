@@ -11,9 +11,13 @@ interface AssetRepositoryInterface
         string $title,
         string $description,
         string $fileName,
-        string $presignedUrl,
+        ?string $key,
+        ?string $uploadId,
+        array $presignedUrls,
         int $fileLength,
         bool $clyUpTv,
         bool $clyUpFrontStore
     ): Asset|\Exception;
+
+    public function getAsset(string $id): Asset;
 }

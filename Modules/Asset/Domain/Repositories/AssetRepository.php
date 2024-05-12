@@ -13,14 +13,16 @@ class AssetRepository implements AssetRepositoryInterface
 
     /**
      * Create a new asset from upload process
-     * @param string $status
-     * @param string $title
-     * @param string $description
-     * @param string $fileName
-     * @param string $presignedUrl
-     * @param int    $fileLength
-     * @param bool   $clyUpTv
-     * @param bool   $clyUpFrontStore
+     * @param string      $status
+     * @param string      $title
+     * @param string      $description
+     * @param string      $fileName
+     * @param string|null $key
+     * @param string|null $uploadId
+     * @param array       $presignedUrls
+     * @param int         $fileLength
+     * @param bool        $clyUpTv
+     * @param bool        $clyUpFrontStore
      * @return Asset|\Exception
      */
     public function createAssetFromUpload(
@@ -28,7 +30,9 @@ class AssetRepository implements AssetRepositoryInterface
         string $title,
         string $description,
         string $fileName,
-        string $presignedUrl,
+        ?string $key,
+        ?string $uploadId,
+        array $presignedUrls,
         int $fileLength,
         bool $clyUpTv,
         bool $clyUpFrontStore
@@ -42,7 +46,9 @@ class AssetRepository implements AssetRepositoryInterface
         ];
         $asset->ingest=[
             's3'=>[
-                'presigned_url'=>$presignedUrl
+                'key'=>$key ?? null,
+                'upload_id'=>$uploadId ?? null,
+                'presigned_urls'=>$presignedUrls ?? []
             ],
             'file'=>[
                 'original_filename'=>$fileName,
@@ -53,6 +59,11 @@ class AssetRepository implements AssetRepositoryInterface
         $asset->clyup_front_store=$clyUpFrontStore;
         $asset->save();
         return $asset;
+    }
+
+    public function getAsset(string $id):Asset
+    {
+        return Asset::find($id);
     }
 
 }
