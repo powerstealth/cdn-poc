@@ -6,15 +6,25 @@ use Aws\S3\S3Client;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Traits\S3Trait;
+use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
+use Modules\Asset\Domain\Actions\PurgeAllUploads;
 use Modules\Asset\Domain\Actions\PurgeExpiredUploads;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
 class AssetService
 {
+    use S3Trait;
+
     protected AssetRepository $assetRepository;
     protected PurgeExpiredUploads $purgeExpiredUploads;
+    protected PurgeAllUploads $purgeAllUploads;
 
+    /**
+     * S3 Client
+     * @var S3Client
+     */
     protected S3Client $s3Client;
 
     /**
@@ -61,6 +71,17 @@ class AssetService
         ];
     }
 
+    /**
+     * Set multipart upload
+     * @param string      $task
+     * @param string|null $originalFileName
+     * @param int|null    $fileLength
+     * @param bool|null   $clyUpTv
+     * @param bool|null   $clyUpFrontStore
+     * @param string|null $assetId
+     * @param int|null    $parts
+     * @return array
+     */
     public function setMultipartUpload(
         string $task,
         ?string $originalFileName,
@@ -70,6 +91,8 @@ class AssetService
         ?string $assetId,
         ?int $parts,
     ):array{
+        $a=Storage::disk('s3')->mimeType("9c0888b2-9881-4dc3-9b54-cb2ad293e55a");
+        dd($a);
         try {
             switch ($task){
                 case 'start':{
@@ -81,6 +104,12 @@ class AssetService
                 default:{throw new \Exception("The task doesn't exist");break;}
             }
         }catch (\Exception $e){
+            //set asset with error
+            if(isset($assetId)){
+                $asset=$this->assetRepository->getAsset($assetId);
+                if($assetId!==null && in_array($asset->status,[AssetStatusEnum::UPLOADED->name]))
+                    $this->assetRepository->updateAsset($assetId,null,null,AssetStatusEnum::ERROR->name);
+            }
             return [
                 "success"=>false,
                 "message"=>"",
@@ -169,6 +198,7 @@ class AssetService
             'Key'       => $key,
             'UploadId'  => $uploadId,
         ]);
+        //merge parts
         $parts=[];
         if(isset($uploadedParts["Parts"])){
             foreach ($uploadedParts["Parts"] as $uploadedPart) {
@@ -178,7 +208,8 @@ class AssetService
                 ];
             }
         }
-        $result = $this->s3Client->completeMultipartUpload(
+        //complete the multipart upload
+        $this->s3Client->completeMultipartUpload(
             [
                 'Bucket'          => env("AWS_BUCKET"),
                 'Key'             => $key,
@@ -186,13 +217,15 @@ class AssetService
                 'MultipartUpload' => [
                     'Parts' => $parts,
                 ],
+                'visibility' => 'public',
         ]);
+        //set asset status
+        $this->assetRepository->updateAsset($assetId,null,null,AssetStatusEnum::UPLOADED->name);
+        //run process job
+        ProcessAsset::dispatch($assetId)->onQueue(env("WORKER_ID"));
         return [
             "success"=>true,
-            "message"=>"",
-            "data"=>[
-                "location"=>(string) $result['Location']
-            ],
+            "message"=>"The file has been uploaded successfully",
             "error"=>"",
             "response_status"=>200
         ];

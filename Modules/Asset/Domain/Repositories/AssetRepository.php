@@ -100,8 +100,30 @@ class AssetRepository implements AssetRepositoryInterface
                 $assets=$assets->where($filter[0],$filter[1],$filter[2]);
             }
         }
-        $assets=$assets->get()->toArray();
-        return $assets;
+        return $assets->get()->toArray();
+    }
+
+    /**
+     * Update an asset
+     * @param string      $id
+     * @param array|null  $scope
+     * @param array|null  $data
+     * @param string|null $status
+     * @return Asset
+     */
+    public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status):Asset
+    {
+        $asset=Asset::find($id);
+        //set the scope
+        if(isset($scope["clyup_tv"])) $asset->clyup_tv=$scope["clyup_tv"];
+        if(isset($scope["clyup_front_store"])) $asset->clyup_tv=$scope["clyup_front_store"];
+        //set the data
+        if($data!==null) $asset->data=$data;
+        //set the status
+        if($status!==null) $asset->status=$status;
+        //save
+        $asset->save();
+        return $asset;
     }
 
 }

@@ -19,6 +19,7 @@ interface AssetRepositoryInterface
         bool $clyUpFrontStore
     ): Asset|\Exception;
     public function getAsset(string $id): Asset;
+    public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status): Asset;
     public function listAssets(array $filters): array;
     public function deleteAsset(string $id, ?string $status): bool;
 }
