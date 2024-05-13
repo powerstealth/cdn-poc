@@ -18,14 +18,14 @@ class PurgeAllUploads
         try {
             //get the list of multipart uploads
             $uploads = $s3Client->listMultipartUploads([
-                'Bucket' => env("AWS_BUCKET"),
+                'Bucket' => env("AWS_BUCKET_INGEST"),
             ]);
             //remove all partial uploads
             if(isset($uploads["Uploads"])){
                 foreach ($uploads["Uploads"] as $upload){
                     //remove upload
                     $s3Client->abortMultipartUpload([
-                        'Bucket'   => env("AWS_BUCKET"),
+                        'Bucket'   => env("AWS_BUCKET_INGEST"),
                         'Key'      => $upload["Key"],
                         'UploadId' => $upload["UploadId"],
                     ]);
@@ -33,13 +33,13 @@ class PurgeAllUploads
             }
             //remove the uploads
             $uploads = $s3Client->listObjects([
-                'Bucket' => env("AWS_BUCKET"),
+                'Bucket' => env("AWS_BUCKET_INGEST"),
             ]);
             if(isset($uploads["Contents"])){
                 foreach ($uploads["Contents"] as $upload){
                     //remove upload
                     $s3Client->deleteObject([
-                        'Bucket'   => env("AWS_BUCKET"),
+                        'Bucket'   => env("AWS_BUCKET_INGEST"),
                         'Key'      => $upload["Key"]
                     ]);
                 }

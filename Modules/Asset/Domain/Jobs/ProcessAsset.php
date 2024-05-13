@@ -56,19 +56,25 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         try {
             //update the asset's status
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::PROCESS->name);
-            //get the file info
+            //get the file info from DB
             $asset=$this->assetRepository->getAsset($this->assetId);
             $key=(string)$asset->ingest['s3']['key'];
             $fileLength=(int)$asset->ingest['file']['length'];
             //get the file from S3 ingest bucket
             $s3Client=self::initS3Client();
             $file = $s3Client->getObject([
-                'Bucket' => env("AWS_BUCKET"),
+                'Bucket' => env("AWS_BUCKET_INGEST"),
                 'Key'    => $key,
             ]);
-            //the file length is ok
+            //check the file length
             if($fileLength==$file["ContentLength"]){
-                dd(1);
+                //the file length is ok then check if is a video
+                $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
+                if($this->_isVideo($tempUrl)){
+                    $this->_convertVideoToHls();
+                }else{
+                    throw new \Exception("The file is not a video");
+                }
             }else{
                 throw new \Exception("The file length is wrong");
             }
@@ -87,5 +93,31 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     {
         //fails the job
         $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR);
+    }
+
+    /**
+     * Check if the file is a video
+     * @param $file
+     * @return bool
+     */
+    private function _isVideo($url):bool
+    {
+        $output = shell_exec(env("MEDIAINFO_PATH")." --Output=JSON \"$url\"");
+        $data = json_decode($output, true);
+        $isVideo = false;
+        if ($data !== null && isset($data['media']['track'])) {
+            foreach ($data['media']['track'] as $track) {
+                if (isset($track['@type']) && $track['@type'] === 'Video') {
+                    $isVideo = true;
+                    break;
+                }
+            }
+        }
+        return $isVideo;
+    }
+
+    private function _convertVideoToHls():void
+    {
+
     }
 }

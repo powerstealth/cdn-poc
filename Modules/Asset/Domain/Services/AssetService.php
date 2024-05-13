@@ -57,7 +57,7 @@ class AssetService
      */
     public function setUploadSession(string $fileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore):array{
         $fileName=Str::orderedUuid();
-        $presignedUrl = Storage::disk('s3')->temporaryUploadUrl($fileName, now()->addMinutes(60));
+        $presignedUrl = Storage::disk('s3_ingest')->temporaryUploadUrl($fileName, now()->addMinutes(60));
         $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,$clyUpTv,$clyUpFrontStore);
         return [
             "success"=>true,
@@ -91,8 +91,6 @@ class AssetService
         ?string $assetId,
         ?int $parts,
     ):array{
-        $a=Storage::disk('s3')->mimeType("9c0888b2-9881-4dc3-9b54-cb2ad293e55a");
-        dd($a);
         try {
             switch ($task){
                 case 'start':{
@@ -134,7 +132,7 @@ class AssetService
         $key=Str::orderedUuid()->toString();
         //create the session
         $result = $this->s3Client->createMultipartUpload([
-            'Bucket'            => env("AWS_BUCKET"),
+            'Bucket'            => env("AWS_BUCKET_INGEST"),
             'Key'               => $key,
             'ContentDisposition'=> 'inline',
         ]);
@@ -166,7 +164,7 @@ class AssetService
         $preSignedUrls=[];
         for($i=1;$i<=$parts;$i++){
             $command = $this->s3Client->getCommand('UploadPart', [
-                'Bucket'     => env("AWS_BUCKET"),
+                'Bucket'     => env("AWS_BUCKET_INGEST"),
                 'Key'        => $key,
                 'UploadId'   => $uploadId,
                 'PartNumber' => $i,
@@ -194,7 +192,7 @@ class AssetService
             throw new \Exception("Can't process the asset as multipart upload");
         //get upload ID
         $uploadedParts = $this->s3Client->listParts([
-            'Bucket'    => env("AWS_BUCKET"),
+            'Bucket'    => env("AWS_BUCKET_INGEST"),
             'Key'       => $key,
             'UploadId'  => $uploadId,
         ]);
@@ -211,7 +209,7 @@ class AssetService
         //complete the multipart upload
         $this->s3Client->completeMultipartUpload(
             [
-                'Bucket'          => env("AWS_BUCKET"),
+                'Bucket'          => env("AWS_BUCKET_INGEST"),
                 'Key'             => $key,
                 'UploadId'        => $uploadId,
                 'MultipartUpload' => [

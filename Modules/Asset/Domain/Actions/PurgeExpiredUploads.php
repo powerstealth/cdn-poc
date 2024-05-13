@@ -21,7 +21,7 @@ class PurgeExpiredUploads
         try {
             //get the list of multipart uploads
             $uploads = $s3Client->listMultipartUploads([
-                'Bucket' => env("AWS_BUCKET"),
+                'Bucket' => env("AWS_BUCKET_INGEST"),
             ]);
             if(isset($uploads["Uploads"])){
                 foreach ($uploads["Uploads"] as $upload){
@@ -30,7 +30,7 @@ class PurgeExpiredUploads
                     if($uploadDateTime->lt($currentDateTime)) {
                         //remove upload
                         $s3Client->abortMultipartUpload([
-                            'Bucket'   => env("AWS_BUCKET"),
+                            'Bucket'   => env("AWS_BUCKET_INGEST"),
                             'Key'      => $upload["Key"],
                             'UploadId' => $upload["UploadId"],
                         ]);
