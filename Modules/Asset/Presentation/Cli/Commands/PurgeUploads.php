@@ -5,21 +5,21 @@ namespace Modules\Asset\Presentation\Cli\Commands;
 use Illuminate\Console\Command;
 use Modules\Asset\Domain\Services\AssetService;
 
-class ExpiredMultipartUpload extends Command
+class PurgeUploads extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'upload:purge';
+    protected $signature = 'upload:purge {--wipe} {--expired-uploads}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Delete the expired uploads';
+    protected $description = 'Delete the files into the ingest folder';
 
     /**
      * Create a new command instance.
@@ -38,8 +38,13 @@ class ExpiredMultipartUpload extends Command
      */
     public function handle()
     {
+        //Set the service
         $assetService=app(AssetService::class);
-        $assetService->purgeExpiredUploads();
+        //actions
+        if($this->option('expired-uploads'))
+            $assetService->purgeExpiredUploads();
+        elseif($this->option('wipe'))
+            $assetService->wipeUploads();
         unset($assetService);
     }
 }

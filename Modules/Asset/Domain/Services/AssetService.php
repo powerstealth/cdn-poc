@@ -21,29 +21,20 @@ class AssetService
      * Constructor
      * @param AssetRepository       $assetRepository
      * @param PurgeExpiredUploads $purgeExpiredUploads
+     * @param PurgeAllUploads $purgeAllUploads
      */
     public function __construct(
         AssetRepository $assetRepository,
-        PurgeExpiredUploads $purgeExpiredUploads
+        PurgeExpiredUploads $purgeExpiredUploads,
+        PurgeAllUploads $purgeAllUploads
     ){
         //initialize the asset repository
         $this->assetRepository=$assetRepository;
         //initialize the actions repository
         $this->purgeExpiredUploads=$purgeExpiredUploads;
+        $this->purgeAllUploads=$purgeAllUploads;
         //initialize S3 client
-        $this->_initS3Client();
-    }
-
-    private function _initS3Client():void
-    {
-        $this->s3Client = new S3Client([
-            'credentials'   => [
-                'key'       => env('AWS_ACCESS_KEY_ID'),
-                'secret'    => env('AWS_SECRET_ACCESS_KEY'),
-            ],
-            'region'    => env('AWS_DEFAULT_REGION'),
-            'endpoint'  => env('AWS_ENDPOINT'),
-        ]);
+        $this->s3Client=self::initS3Client();
     }
 
     /**
@@ -217,5 +208,15 @@ class AssetService
         $this->purgeExpiredUploads->expiredMultipartUploads($this->s3Client);
         //remove expired assets
         $this->purgeExpiredUploads->expiredAssets($this->assetRepository);
+    }
+
+    /**
+     * Purge all uploads
+     * @return void
+     */
+    public function wipeUploads():void
+    {
+        //remove S3 multipart uploads
+        $this->purgeAllUploads->execute($this->s3Client);
     }
 }

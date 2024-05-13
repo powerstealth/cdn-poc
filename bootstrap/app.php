@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use \Modules\Asset\Presentation\Cli\Commands\ExpiredMultipartUpload;
+use \Modules\Asset\Presentation\Cli\Commands\PurgeUploads;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withCommands([
-        ExpiredMultipartUpload::class,
+        PurgeUploads::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
         //$middleware->statefulApi();
