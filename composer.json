@@ -13,7 +13,8 @@
         "mongodb/laravel-mongodb": "^4.3",
         "spatie/laravel-data": "4.*",
         "league/flysystem-aws-s3-v3": "3.*",
-        "aws/aws-sdk-php": "3.*"
+        "aws/aws-sdk-php": "3.*",
+        "pbmedia/laravel-ffmpeg": "8.5.*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

@@ -1,4 +1,5 @@
 <?php
+use Illuminate\Support\Facades\Facade;
 
 return [
 
@@ -123,4 +124,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'aliases' => Facade::defaultAliases()->merge([
+        'FFMpeg' => ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::class
+    ])->toArray(),
 ];

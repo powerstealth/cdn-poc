@@ -3,6 +3,8 @@
 namespace Modules\Asset\Domain\Services;
 
 use Aws\S3\S3Client;
+use FFMpeg;
+use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +13,7 @@ use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
 use Modules\Asset\Domain\Actions\PurgeAllUploads;
 use Modules\Asset\Domain\Actions\PurgeExpiredUploads;
+use Modules\Asset\Domain\Actions\SetCorsToS3MediaBucket;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
 class AssetService
@@ -20,6 +23,7 @@ class AssetService
     protected AssetRepository $assetRepository;
     protected PurgeExpiredUploads $purgeExpiredUploads;
     protected PurgeAllUploads $purgeAllUploads;
+    protected SetCorsToS3MediaBucket $setCorsToS3MediaBucket;
 
     /**
      * S3 Client
@@ -29,20 +33,23 @@ class AssetService
 
     /**
      * Constructor
-     * @param AssetRepository       $assetRepository
-     * @param PurgeExpiredUploads $purgeExpiredUploads
-     * @param PurgeAllUploads $purgeAllUploads
+     * @param AssetRepository        $assetRepository
+     * @param PurgeExpiredUploads    $purgeExpiredUploads
+     * @param PurgeAllUploads        $purgeAllUploads
+     * @param SetCorsToS3MediaBucket $setCorsToS3MediaBucket
      */
     public function __construct(
         AssetRepository $assetRepository,
         PurgeExpiredUploads $purgeExpiredUploads,
-        PurgeAllUploads $purgeAllUploads
+        PurgeAllUploads $purgeAllUploads,
+        SetCorsToS3MediaBucket $setCorsToS3MediaBucket
     ){
         //initialize the asset repository
         $this->assetRepository=$assetRepository;
         //initialize the actions repository
         $this->purgeExpiredUploads=$purgeExpiredUploads;
         $this->purgeAllUploads=$purgeAllUploads;
+        $this->setCorsToS3MediaBucket=$setCorsToS3MediaBucket;
         //initialize S3 client
         $this->s3Client=self::initS3Client();
     }
@@ -249,5 +256,16 @@ class AssetService
     {
         //remove S3 multipart uploads
         $this->purgeAllUploads->execute($this->s3Client);
+    }
+
+    /**
+     * Set CORS to Media Bucket
+     * @param string $bucket
+     * @return void
+     */
+    public function SetCorsToS3MediaBucket(string $bucket):void
+    {
+        //remove S3 multipart uploads
+        $this->setCorsToS3MediaBucket->execute($this->s3Client,$bucket);
     }
 }

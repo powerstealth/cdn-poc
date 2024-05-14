@@ -1,9 +1,10 @@
 <?php
 namespace Modules\Asset\Domain\Jobs;
 
-use Aws\S3\S3Client;
+use FFMpeg;
 use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
+use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
@@ -71,7 +72,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                 //the file length is ok then check if is a video
                 $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
                 if($this->_isVideo($tempUrl)){
-                    $this->_convertVideoToHls();
+                    //convert video to HLS
+                    $this->_convertVideoToHls($key);
                 }else{
                     throw new \Exception("The file is not a video");
                 }
@@ -79,6 +81,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                 throw new \Exception("The file length is wrong");
             }
         }catch (\Exception $e){
+            dd($e);
             //on error
             $this->fail($e->getMessage());
         }
@@ -92,7 +95,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     public function failed(\Throwable $e)
     {
         //fails the job
-        $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR);
+        $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
     }
 
     /**
@@ -116,8 +119,48 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         return $isVideo;
     }
 
-    private function _convertVideoToHls():void
+    /**
+     * Convert a video to HLS
+     * @param string $key
+     * @return void
+     */
+    private function _convertVideoToHls(string $key):void
     {
-
+        //set Presigned Url
+        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(5));
+        //get video
+        $video=FFMpeg::openUrl($tempUrl);
+        //get orientation
+        $dimensions=$video->getVideoStream()->getDimensions();
+        $width = $dimensions->getWidth();
+        $height = $dimensions->getHeight();
+        //set bitrates and sizes
+        $bitrate=$video->getVideoStream()->get("bit_rate")/1000;
+        $profiles['SD'] = [
+            'bitrate' => (new X264)->setKiloBitrate(1000),
+            'size' => ($width > $height) ? 'scale=640:-1' : 'scale=480:-1'
+        ];
+        if($bitrate>=2000)
+            $profiles['HD'] = [
+                'bitrate' => (new X264)->setKiloBitrate(2000),
+                'size' => ($width > $height) ? 'scale=1280:-1' : 'scale=720:-1'
+            ];
+        if($bitrate>=4000)
+            $profiles['FHD'] = [
+                'bitrate' => (new X264)->setKiloBitrate(4000),
+                'size' => ($width > $height) ? 'scale=1920:-1' : 'scale=1080:-1'
+            ];
+        unset($video);
+        $transcoder=FFMpeg::openUrl($tempUrl)
+            ->exportForHLS()
+            ->setSegmentLength(5)
+            ->toDisk('s3_media');
+        //transcode
+        foreach($profiles as $profile){
+            $transcoder=$transcoder->addFormat($profile['bitrate'], function($media) use ($profile){
+                $media->addFilter($profile['size']);
+            });
+        }
+        $transcoder->save($this->assetId.'/stream/index.m3u8');
     }
 }
