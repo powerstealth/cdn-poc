@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
+use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetListRequest;
 use Modules\Asset\Presentation\Api\Resources\AssetResource;
 use Modules\Asset\Presentation\Api\Requests\AssetMultipartUploadRequest;
@@ -79,6 +80,18 @@ class AssetController extends Controller
             $request->data()->filters,
             $request->data()->setPagination
         );
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Get asset
+     * @param AssetInfoRequest $request
+     * @return JsonResponse|null
+     */
+    public function getAsset(AssetInfoRequest $request):null|JsonResponse
+    {
+        $response=$this->assetService->getAsset($request->data()->id);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

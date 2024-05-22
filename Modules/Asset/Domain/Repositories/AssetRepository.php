@@ -3,7 +3,6 @@ namespace Modules\Asset\Domain\Repositories;
 
 use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Contracts\AssetRepositoryInterface;
-use MongoDB\BSON\ObjectId;
 
 class AssetRepository implements AssetRepositoryInterface
 {
@@ -68,11 +67,21 @@ class AssetRepository implements AssetRepositoryInterface
     /**
      * Get an asset
      * @param string $id
-     * @return Asset
+     * @return Asset|null
      */
-    public function getAsset(string $id):Asset
+    public function getAsset(string $id):Asset|\Exception
     {
-        return Asset::find($id);
+        try {
+            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))
+                ->where('owner',new \MongoDB\BSON\ObjectId(auth('sanctum')->user()->id))
+                ->first();
+            if($asset===null)
+                throw new \Exception("The asset doesn't exist");
+            else
+                return $asset;
+        }catch (\Exception $e){
+            return $e;
+        }
     }
 
     /**
@@ -104,7 +113,10 @@ class AssetRepository implements AssetRepositoryInterface
     public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination):array|\Exception
     {
         try {
+            //select
             $assets=Asset::select("*");
+            //filter by user
+            $assets->where('owner',new \MongoDB\BSON\ObjectId(auth('sanctum')->user()->id));
             //add filters
             if(count($filters)>0){
                 foreach ($filters as $filter){

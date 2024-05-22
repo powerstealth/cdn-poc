@@ -324,4 +324,31 @@ class AssetService
             "response_status"=>200
         ];
     }
+
+    /**
+     * Get a single asset
+     * @param string $id
+     * @return array
+     */
+    public function getAsset(string $id):array{
+        $data=$this->assetRepository->getAsset($id);
+        if($data instanceof \Exception){
+            $requestData=[
+                "success"=>false,
+                "message"=>"An error was occurred",
+                "data"=>null,
+                "error"=>$data->getMessage(),
+                "response_status"=>400
+            ];
+        }else{
+            $requestData=[
+                "success"=>true,
+                "message"=>"",
+                "data"=>$data->toArray(),
+                "error"=>null,
+                "response_status"=>200
+            ];
+        }
+        return $requestData;
+    }
 }
