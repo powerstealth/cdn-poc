@@ -16,7 +16,8 @@ interface AssetRepositoryInterface
         array $presignedUrls,
         int $fileLength,
         bool $clyUpTv,
-        bool $clyUpFrontStore
+        bool $clyUpFrontStore,
+        string $owner
     ): Asset|\Exception;
     public function getAsset(string $id): Asset;
     public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status, ?array $mediaInfo): Asset;

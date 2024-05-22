@@ -75,12 +75,16 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                 //the file length is ok then check if is a video
                 $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
                 if($this->_isVideo($tempUrl)){
+                    //create presigned Url
+                    $presignedUrl = $this->_generatePresignedUrl($key);
                     //get media info
-                    $this->_getMediaInfo($key);
+                    $this->_getMediaInfo($presignedUrl);
+                    //create tile
+                    $this->_createTile($presignedUrl);
                     //create thumbnails
-                    $this->_createTile($key);
+                    $this->_createThumbnails($presignedUrl);
                     //convert video to HLS
-                    $this->_convertVideoToHls($key);
+                    $this->_convertVideoToHls($presignedUrl);
                 }else{
                     throw new \Exception("The file is not a video");
                 }
@@ -128,13 +132,11 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
 
     /**
      * Convert a video to HLS
-     * @param string $key
+     * @param string $tempUrl
      * @return void
      */
-    private function _convertVideoToHls(string $key):void
+    private function _convertVideoToHls(string $tempUrl):void
     {
-        //set Presigned Url
-        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(120));
         //get video
         $video=FFMpeg::openUrl($tempUrl);
         //get orientation
@@ -176,10 +178,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
      * @param string $key
      * @return void
      */
-    private function _createTile(string $key):void
+    private function _createTile(string $tempUrl):void
     {
-        //set Presigned Url
-        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(120));
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
             ->exportTile(function (TileFactory $factory) {
@@ -194,14 +194,27 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     * Get media info
-     * @param string $key
+     * Create the thumbnails
+     * @param string $tempUrl
      * @return void
      */
-    private function _getMediaInfo(string $key):void
+    private function _createThumbnails(string $tempUrl):void
     {
-        //set Presigned Url
-        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(120));
+        //set the transcoder
+        $transcoder=FFMpeg::openUrl($tempUrl)
+            ->exportFramesByInterval(10,1024)
+            ->toDisk('s3_media');
+        //save
+        $transcoder->save($this->assetId.'/frames/frame_%05d.jpg');
+    }
+
+    /**
+     * Get media info
+     * @param string $tempUrl
+     * @return void
+     */
+    private function _getMediaInfo(string $tempUrl):void
+    {
         //run Media Info Lib
         $output = shell_exec(env("MEDIAINFO_PATH")." --Output=JSON \"$tempUrl\"");
         $data = json_decode($output, true);
@@ -209,5 +222,15 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             //Update asset
             $this->assetRepository->updateAsset($this->assetId,null,null,null,$data['media']['track']);
         }
+    }
+
+    /**
+     * Generate presigned url
+     * @param string $key
+     * @param int    $minutes
+     * @return string
+     */
+    private function _generatePresignedUrl(string $key, int $minutes=60):string{
+        return Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes($minutes));
     }
 }

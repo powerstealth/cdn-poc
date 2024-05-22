@@ -3,6 +3,7 @@ namespace Modules\Asset\Domain\Repositories;
 
 use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Contracts\AssetRepositoryInterface;
+use MongoDB\BSON\ObjectId;
 
 class AssetRepository implements AssetRepositoryInterface
 {
@@ -23,6 +24,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param int         $fileLength
      * @param bool        $clyUpTv
      * @param bool        $clyUpFrontStore
+     * @param string      $owner
      * @return Asset|\Exception
      */
     public function createAssetFromUpload(
@@ -35,9 +37,11 @@ class AssetRepository implements AssetRepositoryInterface
         array $presignedUrls,
         int $fileLength,
         bool $clyUpTv,
-        bool $clyUpFrontStore
+        bool $clyUpFrontStore,
+        string $owner
     ): Asset|\Exception{
         $asset=new Asset();
+        $asset->owner=new \MongoDB\BSON\ObjectId($owner);
         $asset->status=$status;
         $asset->file_name=$fileName;
         $asset->data=[

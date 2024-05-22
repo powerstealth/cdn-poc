@@ -24,7 +24,8 @@ class Asset extends Model
         'status',
         'data',
         'ingest',
-        'media_info'
+        'media_info',
+        'owner'
     ];
 
     /**

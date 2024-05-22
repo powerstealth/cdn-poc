@@ -65,7 +65,7 @@ class AssetService
     public function setUploadSession(string $fileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore):array{
         $fileName=Str::orderedUuid();
         $presignedUrl = Storage::disk('s3_ingest')->temporaryUploadUrl($fileName, now()->addMinutes(60));
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,$clyUpTv,$clyUpFrontStore);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,$clyUpTv,$clyUpFrontStore,auth('sanctum')->user()->id);
         return [
             "success"=>true,
             "message"=>"",
@@ -146,7 +146,7 @@ class AssetService
         //sign the urls
         $urls=$this->_signMultipartUpload($result['UploadId'],$key,$parts);
         //create the asset
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$clyUpTv,$clyUpFrontStore);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$clyUpTv,$clyUpFrontStore,auth('sanctum')->user()->id);
         //return
         return [
             "success"=>true,
