@@ -14,6 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
+use ProtoneMedia\LaravelFFMpeg\Filters\TileFactory;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
 class ProcessAsset implements ShouldQueue, ShouldBeUnique
@@ -69,9 +70,15 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             ]);
             //check the file length
             if($fileLength==$file["ContentLength"]){
+                //update the asset's status
+                $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::PROCESSING->name);
                 //the file length is ok then check if is a video
                 $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
                 if($this->_isVideo($tempUrl)){
+                    //get media info
+                    $this->_getMediaInfo($key);
+                    //create thumbnails
+                    $this->_createTile($key);
                     //convert video to HLS
                     $this->_convertVideoToHls($key);
                 }else{
@@ -80,8 +87,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             }else{
                 throw new \Exception("The file length is wrong");
             }
+            $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::COMPLETED->name);
         }catch (\Exception $e){
-            dd($e);
             //on error
             $this->fail($e->getMessage());
         }
@@ -100,7 +107,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
 
     /**
      * Check if the file is a video
-     * @param $file
+     * @param $url
      * @return bool
      */
     private function _isVideo($url):bool
@@ -127,7 +134,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     private function _convertVideoToHls(string $key):void
     {
         //set Presigned Url
-        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(5));
+        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(120));
         //get video
         $video=FFMpeg::openUrl($tempUrl);
         //get orientation
@@ -162,5 +169,45 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             });
         }
         $transcoder->save($this->assetId.'/stream/index.m3u8');
+    }
+
+    /**
+     * Create the tile
+     * @param string $key
+     * @return void
+     */
+    private function _createTile(string $key):void
+    {
+        //set Presigned Url
+        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(120));
+        //set the transcoder
+        $transcoder=FFMpeg::openUrl($tempUrl)
+            ->exportTile(function (TileFactory $factory) {
+                $factory->interval(10)
+                    ->scale(320, 180)
+                    ->grid(5, 2)
+                    ->generateVTT($this->assetId.'/tile/tile.vtt');
+            })
+            ->toDisk('s3_media');
+        //save
+        $transcoder->save($this->assetId.'/tile/tile_%05d.jpg');
+    }
+
+    /**
+     * Get media info
+     * @param string $key
+     * @return void
+     */
+    private function _getMediaInfo(string $key):void
+    {
+        //set Presigned Url
+        $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes(120));
+        //run Media Info Lib
+        $output = shell_exec(env("MEDIAINFO_PATH")." --Output=JSON \"$tempUrl\"");
+        $data = json_decode($output, true);
+        if ($data !== null && isset($data['media']['track'])) {
+            //Update asset
+            $this->assetRepository->updateAsset($this->assetId,null,null,null,$data['media']['track']);
+        }
     }
 }

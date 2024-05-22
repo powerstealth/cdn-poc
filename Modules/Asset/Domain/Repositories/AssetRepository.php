@@ -109,18 +109,21 @@ class AssetRepository implements AssetRepositoryInterface
      * @param array|null  $scope
      * @param array|null  $data
      * @param string|null $status
+     * @param array|null  $mediaInfo
      * @return Asset
      */
-    public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status):Asset
+    public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status, ?array $mediaInfo=null):Asset
     {
         $asset=Asset::find($id);
         //set the scope
-        if(isset($scope["clyup_tv"])) $asset->clyup_tv=$scope["clyup_tv"];
-        if(isset($scope["clyup_front_store"])) $asset->clyup_tv=$scope["clyup_front_store"];
+        if(isset($scope["clyup_tv"]) && $scope["clyup_tv"]!=null) $asset->clyup_tv=$scope["clyup_tv"];
+        if(isset($scope["clyup_front_store"]) && $scope["clyup_front_store"]!=null) $asset->clyup_tv=$scope["clyup_front_store"];
         //set the data
         if($data!==null) $asset->data=$data;
         //set the status
         if($status!==null) $asset->status=$status;
+        //set media info
+        if($mediaInfo!==null) $asset->media_info=$mediaInfo;
         //save
         $asset->save();
         return $asset;

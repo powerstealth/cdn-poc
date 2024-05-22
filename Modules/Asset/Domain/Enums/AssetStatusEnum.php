@@ -11,6 +11,7 @@ enum AssetStatusEnum:string implements EnumInterface{
     case PROCESS = "Set to be processed";
     case PROCESSING = "In processing";
     case PROCESSED = "Processed";
+    case COMPLETED = "Completed";
     case ERROR = "Error";
 
     /**

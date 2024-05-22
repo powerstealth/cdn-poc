@@ -25,7 +25,7 @@ class SystemService
             "success"=>true,
             "message"=>"Application up",
             "data"=>[
-                "worker"=>env("WORKER")
+                "worker"=>env("WORKER_ID")
             ],
             "error"=>"",
             "response_status"=>200
