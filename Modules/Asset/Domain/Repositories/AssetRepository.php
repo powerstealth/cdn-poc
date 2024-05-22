@@ -92,19 +92,37 @@ class AssetRepository implements AssetRepositoryInterface
     }
 
     /**
-     * @param array $filters
-     * @return array
+     * Assets list
+     * @param int    $page
+     * @param int    $limit
+     * @param string $sortField
+     * @param string $sortOrder
+     * @param array  $filters
+     * @param bool   $setPagination
+     * @return array|\Exception
      */
-    public function listAssets(array $filters):array
+    public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination):array|\Exception
     {
-        $assets=new Asset();
-        //add filters
-        if(count($filters)>0){
-            foreach ($filters as $filter){
-                $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+        try {
+            $assets=Asset::select("*");
+            //add filters
+            if(count($filters)>0){
+                foreach ($filters as $filter){
+                    $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                }
             }
+            //sort query
+            $assets->orderBy($sortField,$sortOrder);
+            //set pagination
+            if($setPagination){
+                $assets=$assets->paginate($limit);
+            }else{
+                $assets->skip($limit*($page-1))->take($limit)->get();
+            }
+            return $assets->toArray();
+        }catch (\Exception $e){
+            return $e;
         }
-        return $assets->get()->toArray();
     }
 
     /**

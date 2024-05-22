@@ -10,4 +10,6 @@ Route::prefix('1.0')->group(function () {
     Route::post('/asset/upload',[AssetController::class,'setUploadSession'])->middleware(AuthSanctum::class);
     //Multipart upload
     Route::post('/asset/upload/multipart',[AssetController::class,'multipartUpload'])->middleware(AuthSanctum::class);
+    //List
+    Route::post('/assets',[AssetController::class,'getAssets'])->middleware(AuthSanctum::class);
 });

@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
+use Modules\Asset\Presentation\Api\Requests\AssetListRequest;
 use Modules\Asset\Presentation\Api\Resources\AssetResource;
 use Modules\Asset\Presentation\Api\Requests\AssetMultipartUploadRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUploadSessionRequest;
@@ -58,6 +59,25 @@ class AssetController extends Controller
             $request->data()->scope_clyup_front_store,
             $request->data()->asset_id,
             $request->data()->parts,
+        );
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Get assets list
+     * @param AssetListRequest $request
+     * @return JsonResponse|null
+     */
+    public function getAssets(AssetListRequest $request):null|JsonResponse
+    {
+        $response=$this->assetService->getAssets(
+            $request->data()->page,
+            $request->data()->limit,
+            $request->data()->sortField,
+            $request->data()->sortOrder,
+            $request->data()->filters,
+            $request->data()->setPagination
         );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
