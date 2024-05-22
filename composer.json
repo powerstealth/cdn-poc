@@ -14,7 +14,9 @@
         "spatie/laravel-data": "4.*",
         "league/flysystem-aws-s3-v3": "3.*",
         "aws/aws-sdk-php": "3.*",
-        "pbmedia/laravel-ffmpeg": "8.5.*"
+        "pbmedia/laravel-ffmpeg": "8.5.*",
+        "spatie/laravel-permission": "6.7.*",
+        "diyako/laravel-mongodb-permission": "1.1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

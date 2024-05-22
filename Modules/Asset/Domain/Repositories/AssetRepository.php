@@ -72,14 +72,20 @@ class AssetRepository implements AssetRepositoryInterface
     public function getAsset(string $id):Asset|\Exception
     {
         try {
-            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))
-                ->where('owner',new \MongoDB\BSON\ObjectId(auth('sanctum')->user()->id))
-                ->first();
+            //get user
+            $user=auth('sanctum')->user();
+            //get asset
+            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id));
+            //filter by user
+            if(!$user->hasRole('admin'))
+                $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
+            //find
+            $asset=$asset->first();
             if($asset===null)
                 throw new \Exception("The asset doesn't exist");
             else
                 return $asset;
-        }catch (\Exception $e){
+        }catch (\Exception $e){;
             return $e;
         }
     }
@@ -113,10 +119,13 @@ class AssetRepository implements AssetRepositoryInterface
     public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination):array|\Exception
     {
         try {
+            //get user
+            $user=auth('sanctum')->user();
             //select
             $assets=Asset::select("*");
             //filter by user
-            $assets->where('owner',new \MongoDB\BSON\ObjectId(auth('sanctum')->user()->id));
+            if(!$user->hasRole('admin'))
+                $assets->where('owner',new \MongoDB\BSON\ObjectId($user->id));
             //add filters
             if(count($filters)>0){
                 foreach ($filters as $filter){

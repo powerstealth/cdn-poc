@@ -2,16 +2,19 @@
 
 namespace Modules\Auth\Domain\Services;
 
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Modules\Auth\Domain\Repositories\AuthRepository;
+use Spatie\Permission\Traits\HasRoles;
 use Modules\Auth\Domain\Traits\JwtTrait;
+use Modules\Auth\Domain\Repositories\AuthRepository;
 
 class AuthService
 {
-    use JwtTrait;
+    use JwtTrait, HasRoles;
 
     protected AuthRepository $authRepository;
 
@@ -91,4 +94,27 @@ class AuthService
         }
     }
 
+    /**
+     * @param string $newRole
+     * @param string $userId
+     * @return bool
+     */
+    public function setUserRole(string $newRole, string $userId):bool
+    {
+        //check if the role exists else create
+        try {
+            $role = Role::findByName($newRole,'api');
+        }catch (\Exception $e){
+            $role = Role::create(['name' => 'admin']);
+        }
+        //find the user
+        $user = $this->authRepository->getUserById($userId);
+        if (!$user) {
+            return false;
+        }else{
+            //assign the role to user
+            $user->syncRoles([$newRole]);
+            return true;
+        }
+    }
 }

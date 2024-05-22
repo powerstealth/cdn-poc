@@ -3,6 +3,7 @@ namespace Modules\Auth\Domain\Repositories;
 
 use Modules\Auth\Domain\Models\User;
 use Modules\Auth\Domain\Contracts\AuthRepositoryInterface;
+use MongoDB\BSON\ObjectId;
 
 class AuthRepository implements AuthRepositoryInterface
 {
@@ -10,6 +11,19 @@ class AuthRepository implements AuthRepositoryInterface
      * Constructor
      */
     public function __construct(){}
+
+    /**
+     * Get user by Id
+     * @param string $id
+     * @return User|null
+     */
+    public function getUserById(string $id): User|null{
+        try {
+            return User::find(new \MongoDB\BSON\ObjectId($id));
+        }catch (\Exception $e){
+            return null;
+        }
+    }
 
     /**
      * Get user by email
