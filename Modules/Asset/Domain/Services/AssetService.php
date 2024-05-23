@@ -8,6 +8,7 @@ use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Dto\AssetUpdateDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
@@ -351,4 +352,32 @@ class AssetService
         }
         return $requestData;
     }
+
+    /**
+     * Update the asset
+     * @param string $id
+     * @param array  $data
+     * @return array
+     */
+    public function updateAsset(string $id, array $data):array{
+        $data=$this->assetRepository->updateAsset($id,null,$data,null);
+        if(!$data instanceof \Exception){
+            return [
+                "success"=>true,
+                "message"=>"The asset has been updated successfully",
+                "data"=>null,
+                "error"=>null,
+                "response_status"=>200
+            ];
+        }else{
+            return [
+                "success"=>false,
+                "message"=>"An error was occurred",
+                "data"=>null,
+                "error"=>$data->getMessage(),
+                "response_status"=>400
+            ];
+        }
+    }
+
 }

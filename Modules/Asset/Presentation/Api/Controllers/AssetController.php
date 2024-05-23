@@ -8,6 +8,7 @@ use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetListRequest;
+use Modules\Asset\Presentation\Api\Requests\AssetUpdateRequest;
 use Modules\Asset\Presentation\Api\Resources\AssetResource;
 use Modules\Asset\Presentation\Api\Requests\AssetMultipartUploadRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUploadSessionRequest;
@@ -92,6 +93,19 @@ class AssetController extends Controller
     public function getAsset(AssetInfoRequest $request):null|JsonResponse
     {
         $response=$this->assetService->getAsset($request->data()->id);
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Update asset
+     * @param string             $id
+     * @param AssetUpdateRequest $request
+     * @return JsonResponse|null
+     */
+    public function updateAsset(string $id, AssetUpdateRequest $request):null|JsonResponse
+    {
+        $response=$this->assetService->updateAsset($id, $request->data()->toArray());
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
