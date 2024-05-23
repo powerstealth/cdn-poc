@@ -4,6 +4,7 @@ namespace Modules\Asset\Presentation\Api\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Asset\Domain\Dto\InfoDto;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
@@ -99,13 +100,24 @@ class AssetController extends Controller
 
     /**
      * Update asset
-     * @param string             $id
      * @param AssetUpdateRequest $request
      * @return JsonResponse|null
      */
-    public function updateAsset(string $id, AssetUpdateRequest $request):null|JsonResponse
+    public function updateAsset(AssetUpdateRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->updateAsset($id, $request->data()->toArray());
+        $response=$this->assetService->updateAsset($request->data()->id, $request->data()->toArray());
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Delete an asset
+     * @param AssetInfoRequest $request
+     * @return JsonResponse|null
+     */
+    public function deleteAsset(AssetInfoRequest $request):null|JsonResponse
+    {
+        $response=$this->assetService->deleteAsset($request->data()->id, false);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

@@ -14,6 +14,7 @@ class AssetUpdateDto extends Data
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
+        public string $id,
         public ?string $title,
         public ?string $description,
     ){}
@@ -25,6 +26,7 @@ class AssetUpdateDto extends Data
     public static function fromRequest(Request $request): static
     {
         return new self(
+            $request->id,
             $request->title,
             $request->description,
         );

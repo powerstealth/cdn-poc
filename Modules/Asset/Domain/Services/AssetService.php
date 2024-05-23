@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Dto\AssetUpdateDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
+use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
@@ -380,4 +381,67 @@ class AssetService
         }
     }
 
+    /**
+     * Delete an asset
+     * @param string  $id
+     * @param bool $hard
+     * @return array
+     */
+    public function deleteAsset(string $id,bool $hard=false):array{
+        //remove physical files
+        if($hard) $this->_purgeAsset($id);
+        //remove asset
+        $data=$this->assetRepository->deleteAsset($id,null,$hard);
+        if($data instanceof \Exception){
+            $requestData=[
+                "success"=>false,
+                "message"=>"An error was occurred",
+                "data"=>null,
+                "error"=>$data->getMessage(),
+                "response_status"=>400
+            ];
+        }else{
+            $requestData=[
+                "success"=>true,
+                "message"=>"The asset has been deleted successfully",
+                "data"=>null,
+                "error"=>null,
+                "response_status"=>200
+            ];
+        }
+        return $requestData;
+    }
+
+    /**
+     * Purge deleted assets
+     * @return void
+     */
+    public function purgeDeletedAssets():void{
+        
+    }
+
+    /**
+     * Purge asset
+     * @param string $assetId
+     * @return void
+     */
+    private function _purgeAsset(string $assetId):void
+    {
+        $objects = $this->s3Client->listObjectsV2([
+            'Bucket' => env("AWS_BUCKET_MEDIA"),
+            'Prefix' => $assetId."/",
+        ]);
+        if ($objects['KeyCount'] > 0) {
+            $objectsToDelete = [];
+            foreach ($objects['Contents'] as $object) {
+                $objectsToDelete[] = ['Key' => $object['Key']];
+            }
+            $this->s3Client->deleteObjects([
+                'Bucket'  => env("AWS_BUCKET_MEDIA"),
+                'Delete' => [
+                    'Objects' => $objectsToDelete,
+                ],
+            ]);
+        }
+    }
 }

@@ -94,16 +94,29 @@ class AssetRepository implements AssetRepositoryInterface
      * Delete an asset
      * @param string      $id
      * @param string|null $status
+     * @param bool        $hard
      * @return bool
      */
-    public function deleteAsset(string $id, ?string $status=null):bool
+    public function deleteAsset(string $id, ?string $status=null, bool $hard=false):bool
     {
-        $asset=Asset::find($id);
+        //get user
+        $user=auth('sanctum')->user();
+        //get the asset
+        $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id));
+        //filter by user
+        if(!$user->hasRole('admin'))
+            $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
+        //find
+        $asset=$asset->first();
         if($status!==null){
             $asset->status=$status;
             $asset->save();
-        }
-        return $asset->delete();
+            if($hard)
+                $asset->forceDelete();
+            else
+                return $asset->delete();
+        }else
+            return false;
     }
 
     /**

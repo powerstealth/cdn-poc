@@ -22,5 +22,5 @@ interface AssetRepositoryInterface
     public function getAsset(string $id): Asset|\Exception;
     public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status, ?array $mediaInfo): Asset|\Exception;
     public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination): array|\Exception;
-    public function deleteAsset(string $id, ?string $status): bool;
+    public function deleteAsset(string $id, ?string $status, bool $hard): bool;
 }
