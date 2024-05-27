@@ -417,7 +417,7 @@ class AssetService
      * @return void
      */
     public function purgeDeletedAssets():void{
-        
+
     }
 
     /**
