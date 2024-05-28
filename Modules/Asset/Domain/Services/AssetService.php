@@ -2,15 +2,13 @@
 
 namespace Modules\Asset\Domain\Services;
 
+use Carbon\Carbon;
 use Aws\S3\S3Client;
-use FFMpeg;
-use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Modules\Asset\Domain\Dto\AssetUpdateDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
-use Modules\Asset\Domain\Models\Asset;
+use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
@@ -68,7 +66,7 @@ class AssetService
      * @return array
      */
     public function getAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination):array{
-        $data=$this->assetRepository->listAssets($page,$limit,$sortField,$sortOrder,$filters,$setPagination);
+        $data=$this->assetRepository->listAssets($page,$limit,$sortField,$sortOrder,$filters,AssetTrashedStatusEnum::EXCLUDETRASHED,$setPagination);
         return $this->_returnWithPagination($data,$setPagination);
     }
 
@@ -417,7 +415,12 @@ class AssetService
      * @return void
      */
     public function purgeDeletedAssets():void{
-
+        //get all deleted assets
+        $filters=[['deleted_at','<',Carbon::now()->subDays(1)]];
+        $deletedAssets=$this->assetRepository->listAssets(0,100,'_id','asc',$filters,AssetTrashedStatusEnum::ONLYTRASHED,false);
+        foreach($deletedAssets as $deletedAsset){
+            $this->deleteAsset($deletedAsset["_id"],true);
+        }
     }
 
     /**

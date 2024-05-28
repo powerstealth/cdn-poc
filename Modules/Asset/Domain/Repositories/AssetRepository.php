@@ -1,6 +1,8 @@
 <?php
 namespace Modules\Asset\Domain\Repositories;
 
+use Modules\Asset\Domain\Enums\AssetStatusEnum;
+use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
 use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Contracts\AssetRepositoryInterface;
 
@@ -77,7 +79,7 @@ class AssetRepository implements AssetRepositoryInterface
             //get asset
             $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id));
             //filter by user
-            if(!$user->hasRole('admin'))
+            if($user!==null && !$user->hasRole('admin'))
                 $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
             //find
             $asset=$asset->first();
@@ -102,42 +104,50 @@ class AssetRepository implements AssetRepositoryInterface
         //get user
         $user=auth('sanctum')->user();
         //get the asset
-        $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id));
+        $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
         //filter by user
-        if(!$user->hasRole('admin'))
+        if($user!==null && !$user->hasRole('admin'))
             $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
         //find
         $asset=$asset->first();
-        if($status!==null){
+        if(isset($asset->status) && $asset->status!==null){
             $asset->status=$status;
             $asset->save();
-            if($hard)
-                $asset->forceDelete();
-            else
-                return $asset->delete();
-        }else
-            return false;
+        }
+        if($hard){
+            $asset->forceDelete();
+            return true;
+        }else{
+            $asset->delete();
+            return true;
+        }
     }
 
     /**
      * Assets list
-     * @param int    $page
-     * @param int    $limit
-     * @param string $sortField
-     * @param string $sortOrder
-     * @param array  $filters
-     * @param bool   $setPagination
+     * @param int                    $page
+     * @param int                    $limit
+     * @param string                 $sortField
+     * @param string                 $sortOrder
+     * @param array                  $filters
+     * @param AssetTrashedStatusEnum $trashedItems
+     * @param bool                   $setPagination
      * @return array|\Exception
      */
-    public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination):array|\Exception
+    public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, AssetTrashedStatusEnum $trashedItems=AssetTrashedStatusEnum::EXCLUDETRASHED ,bool $setPagination=true):array|\Exception
     {
         try {
             //get user
             $user=auth('sanctum')->user();
             //select
             $assets=Asset::select("*");
+            //manage trashed items
+            switch ($trashedItems->value){
+                case 1: $assets->withTrashed();break;
+                case 2: $assets->onlyTrashed();break;
+            }
             //filter by user
-            if(!$user->hasRole('admin'))
+            if($user!==null && !$user->hasRole('admin'))
                 $assets->where('owner',new \MongoDB\BSON\ObjectId($user->id));
             //add filters
             if(count($filters)>0){
@@ -150,10 +160,10 @@ class AssetRepository implements AssetRepositoryInterface
             //set pagination
             if($setPagination){
                 $assets=$assets->paginate($limit);
+                return $assets->toArray();
             }else{
-                $assets->skip($limit*($page-1))->take($limit)->get();
+                return $assets->skip($limit*($page-1))->take($limit)->get()->toArray();
             }
-            return $assets->toArray();
         }catch (\Exception $e){
             return $e;
         }
@@ -174,7 +184,7 @@ class AssetRepository implements AssetRepositoryInterface
             //get user
             $user=auth('sanctum')->user();
             //get asset
-            if($user->hasRole('admin'))
+            if($user===null || $user->hasRole('admin'))
                 $asset=Asset::find($id);
             else
                 $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))

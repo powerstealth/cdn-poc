@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use \Modules\Asset\Presentation\Cli\Commands\PurgeUploads;
 use \Modules\Asset\Presentation\Cli\Commands\S3Cors;
 use \Modules\Auth\Presentation\Cli\Commands\SetUserRole;
+use \Modules\Asset\Presentation\Cli\Commands\PurgeDeletedAssets;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,7 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         PurgeUploads::class,
         S3Cors::class,
-        SetUserRole::class
+        SetUserRole::class,
+        PurgeDeletedAssets::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
         //$middleware->statefulApi();

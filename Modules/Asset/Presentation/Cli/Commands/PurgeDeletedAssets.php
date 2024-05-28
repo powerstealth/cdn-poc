@@ -41,7 +41,7 @@ class PurgeDeletedAssets extends Command
         //Set the service
         $assetService=app(AssetService::class);
         //actions
-        $assetService->purgeDeletedAsset();
+        $assetService->purgeDeletedAssets();
         unset($assetService);
     }
 }

@@ -45,6 +45,8 @@ class PurgeUploads extends Command
             $assetService->purgeExpiredUploads();
         elseif($this->option('wipe'))
             $assetService->wipeUploads();
+        else
+            echo("Set --wipe or --expired-uploads\n");
         unset($assetService);
     }
 }

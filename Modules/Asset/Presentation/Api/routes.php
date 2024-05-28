@@ -7,7 +7,7 @@ use \Modules\Asset\Presentation\Api\Controllers\AssetController;
 
 Route::prefix('1.0')->group(function () {
     //Single Upload
-    Route::post('/asset/upload',[AssetController::class,'setUploadSession'])->middleware(AuthSanctum::class);
+    //Route::post('/asset/upload',[AssetController::class,'setUploadSession'])->middleware(AuthSanctum::class);
     //Multipart upload
     Route::post('/asset/upload/multipart',[AssetController::class,'multipartUpload'])->middleware(AuthSanctum::class);
     //List
