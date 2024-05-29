@@ -1,6 +1,7 @@
 <?php
 namespace Modules\Asset\Domain\Repositories;
 
+use Modules\Asset\Domain\Dto\AssetDataDto;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
 use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
 use Modules\Asset\Domain\Models\Asset;
@@ -26,6 +27,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param bool        $clyUpTv
      * @param bool        $clyUpFrontStore
      * @param string      $owner
+     * @param bool        $published
      * @return Asset|\Exception
      */
     public function createAssetFromUpload(
@@ -39,10 +41,12 @@ class AssetRepository implements AssetRepositoryInterface
         int $fileLength,
         bool $clyUpTv,
         bool $clyUpFrontStore,
-        string $owner
+        string $owner,
+        bool $published=false,
     ): Asset|\Exception{
         $asset=new Asset();
         $asset->owner=new \MongoDB\BSON\ObjectId($owner);
+        $asset->published=$published;
         $asset->status=$status;
         $asset->file_name=$fileName;
         $asset->data=[
@@ -110,10 +114,15 @@ class AssetRepository implements AssetRepositoryInterface
             $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
         //find
         $asset=$asset->first();
+        //set status
         if(isset($asset->status) && $asset->status!==null){
             $asset->status=$status;
-            $asset->save();
         }
+        //set published
+        $asset->published=false;
+        //save the asset
+        $asset->save();
+        //check hard or soft delete
         if($hard){
             $asset->forceDelete();
             return true;
@@ -175,10 +184,18 @@ class AssetRepository implements AssetRepositoryInterface
      * @param array|null  $scope
      * @param array|null  $data
      * @param string|null $status
+     * @param bool|null   $published
      * @param array|null  $mediaInfo
      * @return Asset|\Exception
      */
-    public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status, ?array $mediaInfo=null):Asset|\Exception
+    public function updateAsset(
+        string $id,
+        ?array $scope,
+        ?array $data,
+        ?string $status,
+        ?bool $published=null,
+        ?array $mediaInfo=null
+    ):Asset|\Exception
     {
         try {
             //get user
@@ -196,16 +213,21 @@ class AssetRepository implements AssetRepositoryInterface
             if(isset($scope["clyup_tv"]) && $scope["clyup_tv"]!=null) $asset->clyup_tv=$scope["clyup_tv"];
             if(isset($scope["clyup_front_store"]) && $scope["clyup_front_store"]!=null) $asset->clyup_tv=$scope["clyup_front_store"];
             //set the data
-            $newData=$asset->data;
+            $assetDataDto=new AssetDataDto($asset->data["title"],$asset->data["description"]);
             if($data!==null){
                 foreach($data as $k=>$v){
-                    if($v!==null)
-                        $newData[$k]=$v;
+                    if($v!==null){
+                        $assetDataDto->$k=$v;
+                    }
                 }
             }
-            $asset->data=$newData;
+            $asset->data=$assetDataDto->toArray();
             //set the status
-            if($status!==null) $asset->status=$status;
+            if($status!==null)
+                $asset->status=$status;
+            //set the published status
+            if(isset($published) && $published!==null)
+                $asset->published=$published;
             //set media info
             if($mediaInfo!==null) $asset->media_info=$mediaInfo;
             //save

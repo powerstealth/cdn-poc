@@ -5,7 +5,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Spatie\LaravelData\Data;
 
-class AssetUpdateDto extends Data
+class AssetDataDto extends Data
 {
     /**
      * Construct
@@ -14,10 +14,8 @@ class AssetUpdateDto extends Data
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
-        public string $id,
         public ?string $title,
         public ?string $description,
-        public ?bool $published,
     ){}
 
     /**
@@ -27,10 +25,8 @@ class AssetUpdateDto extends Data
     public static function fromRequest(Request $request): static
     {
         return new self(
-            $request->id,
             $request->title,
-            $request->description,
-            $request->published,
+            $request->description
         );
     }
 }

@@ -18,4 +18,6 @@ Route::prefix('1.0')->group(function () {
     Route::put('/asset/{id}',[AssetController::class,'updateAsset'])->middleware(AuthSanctum::class);
     //Delete an asset
     Route::delete('/asset/{id}',[AssetController::class,'deleteAsset'])->middleware(AuthSanctum::class);
+    //Stream an asset
+    //Route::get('/asset/stream/{id}',[AssetController::class,'streamAsset'])->middleware(AuthSanctum::class);
 });

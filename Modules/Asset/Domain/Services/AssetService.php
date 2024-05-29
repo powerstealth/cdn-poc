@@ -354,12 +354,13 @@ class AssetService
 
     /**
      * Update the asset
-     * @param string $id
-     * @param array  $data
+     * @param string    $id
+     * @param array     $data
+     * @param bool|null $published
      * @return array
      */
-    public function updateAsset(string $id, array $data):array{
-        $data=$this->assetRepository->updateAsset($id,null,$data,null);
+    public function updateAsset(string $id, array $data, ?bool $published):array{
+        $data=$this->assetRepository->updateAsset($id,null,$data,null,$published);
         if(!$data instanceof \Exception){
             return [
                 "success"=>true,
