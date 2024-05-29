@@ -130,7 +130,7 @@ class AssetController extends Controller
     public function streamAsset(AssetInfoRequest $request):RedirectResponse|JsonResponse
     {
         //check availability
-        $streaming=$this->assetService->canStreamAsset($request->data()->id);   
+        $streaming=$this->assetService->canStreamAsset($request->data()->id);
         if($streaming===false)
             return response()->json([],401);
         else
