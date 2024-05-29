@@ -4,7 +4,7 @@ namespace Modules\Asset\Presentation\Api\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Asset\Domain\Dto\InfoDto;
+use Illuminate\Http\RedirectResponse;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
@@ -120,5 +120,20 @@ class AssetController extends Controller
         $response=$this->assetService->deleteAsset($request->data()->id, false);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Redirect the user to stream an asset
+     * @param AssetInfoRequest $request
+     * @return RedirectResponse|JsonResponse
+     */
+    public function streamAsset(AssetInfoRequest $request):RedirectResponse|JsonResponse
+    {
+        //check availability
+        $streaming=$this->assetService->canStreamAsset($request->data()->id);   
+        if($streaming===false)
+            return response()->json([],401);
+        else
+            return redirect($streaming);
     }
 }

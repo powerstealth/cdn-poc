@@ -40,10 +40,14 @@ class S3Cors extends Command
     {
         //Set the bucket
         $bucket = $this->argument('bucket');
-        //Init the service
-        $assetService=app(AssetService::class);
-        //Set the CORS
-        $assetService->SetCorsToS3MediaBucket($bucket);
+        if($bucket!==null){
+            //Init the service
+            $assetService=app(AssetService::class);
+            //Set the CORS
+            $assetService->SetCorsToS3MediaBucket($bucket);
+        }else{
+            echo("Add the bucket name\n");
+        }
         unset($assetService);
     }
 }

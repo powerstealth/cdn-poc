@@ -360,7 +360,12 @@ class AssetService
      * @return array
      */
     public function updateAsset(string $id, array $data, ?bool $published):array{
+        //update the asset
         $data=$this->assetRepository->updateAsset($id,null,$data,null,$published);
+        //set visibility
+        if($published!==null)
+            $this->_setPhysicalAssetVisibility($id,$published);
+        //return
         if(!$data instanceof \Exception){
             return [
                 "success"=>true,
@@ -387,8 +392,10 @@ class AssetService
      * @return array
      */
     public function deleteAsset(string $id,bool $hard=false):array{
-        //remove physical files
-        if($hard) $this->_purgeAsset($id);
+        if($hard) //remove physical files
+            $this->_purgeAsset($id);
+        else //disable the physical files
+            $this->_disableAsset($id);
         //remove asset
         $data=$this->assetRepository->deleteAsset($id,null,$hard);
         if($data instanceof \Exception){
@@ -425,6 +432,31 @@ class AssetService
     }
 
     /**
+     * Enable or disable the redirect for the streaming
+     * @param string $assetId
+     * @return bool|string
+     */
+    public function canStreamAsset(string $assetId):false|string
+    {
+        //set base stream
+        $stream=$assetId."/stream/index.m3u8";
+        //check if the asset is published
+        if($this->assetRepository->isAssetPublished($assetId)){
+            return env("AWS_MEDIA_URL").$stream;
+        }else{
+            //get the asset
+            $asset=$this->getAsset($assetId);
+            if($asset===null){
+                return false;
+            }else{
+                return Storage::disk('s3_media')->temporaryUrl(
+                    $stream, now()->addMinutes(60)
+                );
+            }
+        }
+    }
+
+    /**
      * Purge asset
      * @param string $assetId
      * @return void
@@ -447,5 +479,16 @@ class AssetService
                 ],
             ]);
         }
+    }
+
+    /**
+     * Disable the physical asset
+     * @param string $assetId
+     * @param bool   $visibility
+     * @return void
+     */
+    private function _setPhysicalAssetVisibility(string $assetId, bool $visibility):void
+    {
+        Storage::disk('s3_media')->setVisibility($assetId."/stream/index.m3u8",$visibility ? "public" : "private");
     }
 }

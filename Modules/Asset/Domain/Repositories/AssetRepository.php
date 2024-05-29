@@ -238,4 +238,17 @@ class AssetRepository implements AssetRepositoryInterface
         }
     }
 
+    /**
+     * Check if the asset is published
+     * @param string $id
+     * @return bool
+     */
+    public function isAssetPublished(string $id):bool
+    {
+        $asset=Asset::find($id);
+        if($asset!==null && isset($asset->published) && $asset->published===true)
+            return true;
+        else
+            return false;
+    }
 }

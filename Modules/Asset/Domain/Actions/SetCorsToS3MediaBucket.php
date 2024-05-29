@@ -35,7 +35,5 @@ class SetCorsToS3MediaBucket
         }catch (\Exception $e){
             echo $e->getMessage();
         }
-
-
     }
 }
