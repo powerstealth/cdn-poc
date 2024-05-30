@@ -20,7 +20,6 @@ class AssetMultipartUploadRequest extends FormRequest
     {
         return [
             'task'                      => 'required|string|in:'.$this->_multipartUploadTasks(),
-
             'file_name'                 => 'required_if:task,start|string',
             'file_length'               => 'required_if:task,start|integer|min:1000000',
             'scope_clyup_tv'            => 'required_if:task,start|bool',

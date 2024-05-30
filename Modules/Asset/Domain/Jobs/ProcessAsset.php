@@ -85,11 +85,13 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                     $this->_createThumbnails($presignedUrl);
                     //convert video to HLS
                     $this->_convertVideoToHls($presignedUrl);
+                    //move the original file
+                    $this->_moveOriginalFile($key,$asset->file_name);
                 }else{
                     throw new \Exception("The file is not a video");
                 }
             }else{
-                throw new \Exception("The file length is wrong");
+                throw new \Exception("The file length is wrong. Upload it again.");
             }
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::COMPLETED->name);
         }catch (\Exception $e){
@@ -175,7 +177,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
 
     /**
      * Create the tile
-     * @param string $key
+     * @param string $tempUrl
      * @return void
      */
     private function _createTile(string $tempUrl):void
@@ -206,6 +208,20 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             ->toDisk('s3_media');
         //save
         $transcoder->save($this->assetId.'/frames/frame_%05d.jpg');
+    }
+
+    /**
+     * Move the original file
+     * @param string $key
+     * @param string $fileExtension
+     * @return void
+     */
+    private function _moveOriginalFile(string $key, string $originalFile):void
+    {
+        //set the source
+        $source=Storage::disk('s3_ingest')->get($key);
+        //move
+        Storage::disk('s3_media')->put($this->assetId."/original/".$originalFile, $source);
     }
 
     /**

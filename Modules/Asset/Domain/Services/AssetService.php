@@ -7,8 +7,10 @@ use Aws\S3\S3Client;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Dto\AssetDataDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
 use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
+use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
@@ -103,6 +105,7 @@ class AssetService
      * @param bool|null   $clyUpFrontStore
      * @param string|null $assetId
      * @param int|null    $parts
+     * @param array|null  $data
      * @return array
      */
     public function setMultipartUpload(
@@ -113,11 +116,12 @@ class AssetService
         ?bool $clyUpFrontStore,
         ?string $assetId,
         ?int $parts,
+        ?array $data
     ):array{
         try {
             switch ($task){
                 case 'start':{
-                    return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,$clyUpTv,$clyUpFrontStore);
+                    return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,$clyUpTv,$clyUpFrontStore,AssetDataDto::from($data));
                 }
                 case 'complete':{
                     return $this->_completeMultipartUpload($assetId);
@@ -142,15 +146,15 @@ class AssetService
     }
 
     /**
-     * Start Multipart Upload
-     * @param int    $parts
-     * @param string $originalFileName
-     * @param int    $fileLength
-     * @param bool   $clyUpTv
-     * @param bool   $clyUpFrontStore
+     * @param int          $parts
+     * @param string       $originalFileName
+     * @param int          $fileLength
+     * @param bool         $clyUpTv
+     * @param bool         $clyUpFrontStore
+     * @param AssetDataDto $data
      * @return array
      */
-    private function _startMultipartUpload(int $parts, string $originalFileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore):array{
+    private function _startMultipartUpload(int $parts, string $originalFileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore, AssetDataDto $data):array{
         //generate the key
         $key=Str::orderedUuid()->toString();
         //create the session
@@ -162,7 +166,7 @@ class AssetService
         //sign the urls
         $urls=$this->_signMultipartUpload($result['UploadId'],$key,$parts);
         //create the asset
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$clyUpTv,$clyUpFrontStore,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$clyUpTv,$clyUpFrontStore,auth('sanctum')->user()->id);
         //return
         return [
             "success"=>true,

@@ -62,6 +62,7 @@ class AssetController extends Controller
             $request->data()->scope_clyup_front_store,
             $request->data()->asset_id,
             $request->data()->parts,
+            $request->data()->data,
         );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);

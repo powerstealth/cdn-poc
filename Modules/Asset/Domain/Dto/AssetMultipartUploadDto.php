@@ -15,6 +15,8 @@ class AssetMultipartUploadDto extends Data
      * @param bool|null   $scope_clyup_tv
      * @param bool|null   $scope_clyup_front_store
      * @param int|null    $parts
+     * @param string|null $asset_id
+     * @param array|null  $data
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
@@ -25,6 +27,7 @@ class AssetMultipartUploadDto extends Data
         public ?bool $scope_clyup_front_store,
         public ?int $parts,
         public ?string $asset_id,
+        public ?array $data
     ){}
 
     /**
@@ -41,6 +44,7 @@ class AssetMultipartUploadDto extends Data
             $request->scope_clyup_front_store,
             $request->parts,
             $request->asset_id,
+            $request->data,
         );
     }
 }
