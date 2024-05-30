@@ -27,7 +27,7 @@ class AuthService
     }
 
     /**
-     * SSO
+     * Check SSO
      * @param string $jwtToken
      * @return array
      */

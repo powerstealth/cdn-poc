@@ -24,6 +24,8 @@ class Sso
     public function handle(Request $request, Closure $next): Response
     {
         try{
+            if($request->bearerToken()===null)
+                throw new \Exception("The token cannot be empty");
             $checkJwtToken=$this->_validateJwtToken($request->bearerToken());
             if($checkJwtToken===true)
                 return $next($request);
