@@ -7,20 +7,21 @@ use MongoDB\BSON\ObjectId;
 
 class AuthRepository implements AuthRepositoryInterface
 {
+
     /**
      * Constructor
      */
     public function __construct(){}
 
     /**
-     * Get user by Id
+     * Get user by ID
      * @param string $id
      * @return User|null
      */
     public function getUserById(string $id): User|null{
         try {
             return User::find(new \MongoDB\BSON\ObjectId($id));
-        }catch (\Exception $e){
+        }catch (\Exception $e){dd($e);
             return null;
         }
     }

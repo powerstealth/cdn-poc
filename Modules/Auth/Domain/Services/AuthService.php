@@ -76,10 +76,13 @@ class AuthService
      */
     public function getUserInfo():array{
         try {
+            //get user info
+            $loggedUser = auth('sanctum')->user();
+            $userInfo = $this->authRepository->getUserById($loggedUser->_id);
             return [
                 "success"=>true,
                 "message"=>"",
-                "data"=>auth('sanctum')->user()->toArray(),
+                "data"=>$userInfo->toArray(),
                 "error"=>"",
                 "response_status"=>200
             ];
