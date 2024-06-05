@@ -10,6 +10,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class AssetListRequest extends FormRequest
 {
+    private array $fields = ['id','owner','published','status','created_at','updated_at'];
     /**
      * @return string[]
      */
@@ -19,7 +20,7 @@ class AssetListRequest extends FormRequest
             'page' => 'min:1',
             'limit' => 'min:1|max:50',
             'filters' => 'array',
-            'sort_field' => Rule::in(['id','name','total_jobs','pending_jobs','failed_jobs','cancelled_at','created_at','finished_at']),
+            'sort_field' => Rule::in($this->fields),
             'sort_order' => Rule::in(['asc','desc']),
         ];
     }
@@ -45,6 +46,7 @@ class AssetListRequest extends FormRequest
             "limit.min" => "The param must take a value equal or more than 1",
             "limit.max" => "The param must take a value equal or less than 50",
             "sort_order.in" => "The param can take asc or desc values",
+            "sort_field.in" => "The param can take the following values: ".implode(", ",$this->fields),
         ];
     }
 
