@@ -486,13 +486,14 @@ class AssetService
     }
 
     /**
-     * Disable the physical asset
+     * Enable or disable the physical asset
      * @param string $assetId
      * @param bool   $visibility
      * @return void
      */
     private function _setPhysicalAssetVisibility(string $assetId, bool $visibility):void
     {
+        //Set asset's privacy to the filesystem
         Storage::disk('s3_media')->setVisibility($assetId."/stream/index.m3u8",$visibility ? "public" : "private");
     }
 }

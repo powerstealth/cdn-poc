@@ -87,10 +87,11 @@ class AssetRepository implements AssetRepositoryInterface
                 $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
             //find
             $asset=$asset->first();
-            if($asset===null)
+            if($asset===null) {
                 throw new \Exception("The asset doesn't exist");
-            else
+            }else{
                 return $asset;
+            }
         }catch (\Exception $e){;
             return $e;
         }
@@ -251,4 +252,5 @@ class AssetRepository implements AssetRepositoryInterface
         else
             return false;
     }
+    
 }

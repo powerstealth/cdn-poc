@@ -2,6 +2,7 @@
 
 namespace Modules\Asset\Domain\Models;
 
+use Modules\Asset\Domain\Dto\AssetMediaDto;
 use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
@@ -26,8 +27,10 @@ class Asset extends Model
         'ingest',
         'media_info',
         'owner',
-        'published'
+        'published',
     ];
+
+    protected $appends = ['media'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -35,5 +38,14 @@ class Asset extends Model
      * @var array<int, string>
      */
     protected $hidden = [];
+
+    public function getMediaAttribute():array
+    {
+        $media=new AssetMediaDto(
+            env("AWS_MEDIA_URL").$this->_id."/stream/index.m3u8",
+            env("AWS_MEDIA_URL").$this->_id."/frames/frame_00003.jpg",
+        );
+        return $media->toArray();
+    }
 
 }
