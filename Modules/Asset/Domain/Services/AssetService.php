@@ -438,26 +438,39 @@ class AssetService
     /**
      * Enable or disable the redirect for the streaming
      * @param string $assetId
-     * @return bool|string
+     * @param bool   $json
+     * @return false|string|array
      */
-    public function canStreamAsset(string $assetId):false|string
+    public function canStreamAsset(string $assetId, bool $json=true):false|string|array
     {
         //set base stream
         $stream=$assetId."/stream/index.m3u8";
         //check if the asset is published
         if($this->assetRepository->isAssetPublished($assetId)){
-            return env("AWS_MEDIA_URL").$stream;
+            $url=env("AWS_MEDIA_URL").$stream;
         }else{
             //get the asset
             $asset=$this->getAsset($assetId);
             if($asset===null){
                 return false;
             }else{
-                return Storage::disk('s3_media')->temporaryUrl(
+                $url=Storage::disk('s3_media')->temporaryUrl(
                     $stream, now()->addMinutes(60)
                 );
             }
         }
+        if($json)
+            return [
+                "success"=>true,
+                "message"=>"",
+                "data"=>[
+                    "private_url" => $url
+                ],
+                "error"=>null,
+                "response_status"=>200
+            ];
+        else
+            return $url;
     }
 
     /**

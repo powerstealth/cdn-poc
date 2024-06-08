@@ -11,10 +11,12 @@ class InfoDto extends Data
     /**
      * Constructor
      * @param string $id
+     * @param bool   $json
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
-        public string $id
+        public string $id,
+        public bool $json
     ){}
 
     /**
@@ -25,6 +27,7 @@ class InfoDto extends Data
     {
         return new self(
             $request->id,
+            $request->json == 'json' ? true : false
         );
     }
 }

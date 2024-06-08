@@ -2,12 +2,10 @@
 
 namespace Modules\Asset\Presentation\Api\Requests;
 
-use Illuminate\Validation\Rule;
 use Modules\Asset\Domain\Dto\InfoDto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use function Modules\Ingest\Presentation\Api\Requests\response;
 
 class AssetInfoRequest extends FormRequest
 {
@@ -16,7 +14,9 @@ class AssetInfoRequest extends FormRequest
      */
     public function rules()
     {
-        return [];
+        return [
+            'json' => 'nullable|in:json',
+        ];
     }
 
     /**
@@ -35,7 +35,9 @@ class AssetInfoRequest extends FormRequest
      * @return string[]
      */
     public function messages(){
-        return [];
+        return [
+            "json.in" => "The param must take json or be null",
+        ];
     }
 
     /**
