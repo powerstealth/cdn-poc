@@ -22,6 +22,7 @@ class AssetListRequest extends FormRequest
             'filters' => 'array',
             'sort_field' => Rule::in($this->fields),
             'sort_order' => Rule::in(['asc','desc']),
+            'search_key' => 'string|nullable'
         ];
     }
 

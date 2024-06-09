@@ -6,6 +6,7 @@ use Modules\Asset\Domain\Enums\AssetStatusEnum;
 use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
 use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Contracts\AssetRepositoryInterface;
+use Modules\Auth\Domain\Models\User;
 
 class AssetRepository implements AssetRepositoryInterface
 {
@@ -43,7 +44,7 @@ class AssetRepository implements AssetRepositoryInterface
         bool $published=false,
     ): Asset|\Exception{
         $asset=new Asset();
-        $asset->owner=new \MongoDB\BSON\ObjectId($owner);
+        $asset->owner_id=new \MongoDB\BSON\ObjectId($owner);
         $asset->published=$published;
         $asset->status=$status;
         $asset->file_name=$fileName;
@@ -78,10 +79,10 @@ class AssetRepository implements AssetRepositoryInterface
             //get user
             $user=auth('sanctum')->user();
             //get asset
-            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id));
+            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->with(['owner']);
             //filter by user
             if($user!==null && !$user->hasRole('admin'))
-                $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
+                $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
             //find
             $asset=$asset->first();
             if($asset===null) {
@@ -109,7 +110,7 @@ class AssetRepository implements AssetRepositoryInterface
         $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
         //filter by user
         if($user!==null && !$user->hasRole('admin'))
-            $asset->where('owner',new \MongoDB\BSON\ObjectId($user->id));
+            $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
         //find
         $asset=$asset->first();
         //set status
@@ -137,17 +138,18 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string                 $sortField
      * @param string                 $sortOrder
      * @param array                  $filters
+     * @param string|null            $search
      * @param AssetTrashedStatusEnum $trashedItems
      * @param bool                   $setPagination
      * @return array|\Exception
      */
-    public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, AssetTrashedStatusEnum $trashedItems=AssetTrashedStatusEnum::EXCLUDETRASHED ,bool $setPagination=true):array|\Exception
+    public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, ?string $search, AssetTrashedStatusEnum $trashedItems=AssetTrashedStatusEnum::EXCLUDETRASHED ,bool $setPagination=true):array|\Exception
     {
         try {
             //get user
             $user=auth('sanctum')->user();
             //select
-            $assets=Asset::select("*");
+            $assets=Asset::select('*')->with(['owner']);
             //manage trashed items
             switch ($trashedItems->value){
                 case 1: $assets->withTrashed();break;
@@ -155,7 +157,7 @@ class AssetRepository implements AssetRepositoryInterface
             }
             //filter by user
             if($user!==null && !$user->hasRole('admin'))
-                $assets->where('owner',new \MongoDB\BSON\ObjectId($user->id));
+                $assets->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
             //add filters
             if(count($filters)>0){
                 foreach ($filters as $filter){
@@ -165,6 +167,23 @@ class AssetRepository implements AssetRepositoryInterface
                         $assets=$assets->where($filter[0],$filter[1],$filter[2]);
                     }
                 }
+            }
+            //search
+            if($search!==null){
+                $assets=$assets->where(function ($query) use ($search) {
+                    //title
+                    $query->orWhere('data.title', 'like', '%' . $search . '%');
+                    //description
+                    $query->orWhere('data.description', 'like', '%' . $search . '%');
+                    //users
+                    $selectUsers=User::orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('magento_user_id', 'like', '%' . $search . '%')
+                        ->pluck('_id')->toArray();
+                    $users = array_map(function ($item) {
+                        return new \MongoDB\BSON\ObjectId($item);
+                    }, $selectUsers);
+                    $query->orWhereIn('owner_id', $users);
+                });
             }
             //sort query
             $assets->orderBy($sortField,$sortOrder);
@@ -207,7 +226,7 @@ class AssetRepository implements AssetRepositoryInterface
                 $asset=Asset::find($id);
             else
                 $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))
-                    ->where('owner',new \MongoDB\BSON\ObjectId($user->id))
+                    ->where('owner_id',new \MongoDB\BSON\ObjectId($user->id))
                     ->first();
             if($asset===null)
                 throw new \Exception("The asset is not available");

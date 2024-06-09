@@ -2,10 +2,12 @@
 
 namespace Modules\Asset\Domain\Models;
 
-use Modules\Asset\Domain\Dto\AssetMediaDto;
+use Modules\Auth\Domain\Models\User;
 use MongoDB\Laravel\Eloquent\Model;
+use Modules\Asset\Domain\Dto\AssetMediaDto;
 use Illuminate\Notifications\Notifiable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Asset extends Model
@@ -26,7 +28,7 @@ class Asset extends Model
         'data',
         'ingest',
         'media_info',
-        'owner',
+        'owner_id',
         'published',
         'scopes'
     ];
@@ -49,4 +51,8 @@ class Asset extends Model
         return $media->toArray();
     }
 
+    public function owner(): HasOne
+    {
+        return $this->hasOne(User::class,'_id','owner_id');
+    }
 }

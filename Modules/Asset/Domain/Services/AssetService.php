@@ -58,16 +58,17 @@ class AssetService
 
     /**
      * Get assets list
-     * @param int    $page
-     * @param int    $limit
-     * @param string $sortField
-     * @param string $sortOrder
-     * @param array  $filters
-     * @param bool   $setPagination
+     * @param int         $page
+     * @param int         $limit
+     * @param string      $sortField
+     * @param string      $sortOrder
+     * @param array       $filters
+     * @param string|null $search
+     * @param bool        $setPagination
      * @return array
      */
-    public function getAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, bool $setPagination):array{
-        $data=$this->assetRepository->listAssets($page,$limit,$sortField,$sortOrder,$filters,AssetTrashedStatusEnum::EXCLUDETRASHED,$setPagination);
+    public function getAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, ?string $search, bool $setPagination):array{
+        $data=$this->assetRepository->listAssets($page,$limit,$sortField,$sortOrder,$filters,$search,AssetTrashedStatusEnum::EXCLUDETRASHED,$setPagination);
         return $this->_returnWithPagination($data,$setPagination);
     }
 

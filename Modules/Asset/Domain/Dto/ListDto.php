@@ -10,13 +10,14 @@ use Spatie\LaravelData\Trasformers\DateTimeInterfaceTransformer;
 class ListDto extends Data
 {
     /**
-     * ProductListDto constructor.
+     * Constructor
      * @param int|string|null $id
      * @param int|null        $page
      * @param int|null        $limit
      * @param string|null     $sortField
      * @param string|null     $sortOrder
      * @param array|null      $filters
+     * @param string|null     $search
      * @param bool            $setPagination
      */
     #[MapName(SnakeCaseMapper::class)]
@@ -27,6 +28,7 @@ class ListDto extends Data
         public ?string $sortField,
         public ?string $sortOrder,
         public ?array $filters,
+        public ?string $search,
         public bool $setPagination,
     ){}
 
@@ -43,6 +45,7 @@ class ListDto extends Data
             ($request->sort_field === null ? "id" : $request->sort_field),
             ($request->sort_order === null ? "asc" : $request->sort_order),
             ($request->filters === null || count($request->filters)==0 ? [] : $request->filters),
+            $request->search,
             ($request->set_pagination === null ? true : (bool)$request->set_pagination)
         );
     }

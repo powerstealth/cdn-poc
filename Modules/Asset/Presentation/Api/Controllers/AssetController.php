@@ -79,6 +79,7 @@ class AssetController extends Controller
             $request->data()->sortField,
             $request->data()->sortOrder,
             $request->data()->filters,
+            $request->data()->search,
             $request->data()->setPagination
         );
         $resource=AssetResource::from($response);
