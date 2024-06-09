@@ -12,8 +12,7 @@ class AssetMultipartUploadDto extends Data
      * @param string      $task
      * @param string|null $file_name
      * @param int|null    $file_length
-     * @param bool|null   $scope_clyup_tv
-     * @param bool|null   $scope_clyup_front_store
+     * @param array|null  $scope
      * @param int|null    $parts
      * @param string|null $asset_id
      * @param array|null  $data
@@ -23,8 +22,7 @@ class AssetMultipartUploadDto extends Data
         public string $task,
         public ?string $file_name,
         public ?int $file_length,
-        public ?bool $scope_clyup_tv,
-        public ?bool $scope_clyup_front_store,
+        public ?array $scope,
         public ?int $parts,
         public ?string $asset_id,
         public ?array $data
@@ -40,8 +38,7 @@ class AssetMultipartUploadDto extends Data
             $request->task,
             $request->file_name,
             $request->file_length,
-            $request->scope_clyup_tv,
-            $request->scope_clyup_front_store,
+            $request->scope,
             $request->parts,
             $request->asset_id,
             $request->data,

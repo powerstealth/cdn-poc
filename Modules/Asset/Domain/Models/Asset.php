@@ -28,6 +28,7 @@ class Asset extends Model
         'media_info',
         'owner',
         'published',
+        'scopes'
     ];
 
     protected $appends = ['media'];

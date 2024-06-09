@@ -16,8 +16,7 @@ interface AssetRepositoryInterface
         ?string $uploadId,
         array $presignedUrls,
         int $fileLength,
-        bool $clyUpTv,
-        bool $clyUpFrontStore,
+        array $scope,
         string $owner,
         bool $published
     ): Asset|\Exception;

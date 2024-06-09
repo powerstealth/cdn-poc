@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Dto\AssetDataDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
 use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
-use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
@@ -76,14 +75,13 @@ class AssetService
      * Get user info
      * @param string $fileName
      * @param int    $fileLength
-     * @param bool   $clyUpTv
-     * @param bool   $clyUpFrontStore
+     * @param array $scope
      * @return array
      */
-    public function setUploadSession(string $fileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore):array{
+    public function setUploadSession(string $fileName, int $fileLength, array $scope):array{
         $fileName=Str::orderedUuid();
         $presignedUrl = Storage::disk('s3_ingest')->temporaryUploadUrl($fileName, now()->addMinutes(60));
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,$clyUpTv,$clyUpFrontStore,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,$scope,auth('sanctum')->user()->id);
         return [
             "success"=>true,
             "message"=>"",
@@ -101,8 +99,7 @@ class AssetService
      * @param string      $task
      * @param string|null $originalFileName
      * @param int|null    $fileLength
-     * @param bool|null   $clyUpTv
-     * @param bool|null   $clyUpFrontStore
+     * @param array|null  $scope
      * @param string|null $assetId
      * @param int|null    $parts
      * @param array|null  $data
@@ -112,8 +109,7 @@ class AssetService
         string $task,
         ?string $originalFileName,
         ?int $fileLength,
-        ?bool $clyUpTv,
-        ?bool $clyUpFrontStore,
+        ?array $scope,
         ?string $assetId,
         ?int $parts,
         ?array $data
@@ -121,7 +117,7 @@ class AssetService
         try {
             switch ($task){
                 case 'start':{
-                    return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,$clyUpTv,$clyUpFrontStore,AssetDataDto::from($data));
+                    return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,$scope,AssetDataDto::from($data));
                 }
                 case 'complete':{
                     return $this->_completeMultipartUpload($assetId);
@@ -149,12 +145,11 @@ class AssetService
      * @param int          $parts
      * @param string       $originalFileName
      * @param int          $fileLength
-     * @param bool         $clyUpTv
-     * @param bool         $clyUpFrontStore
+     * @param array        $scope
      * @param AssetDataDto $data
      * @return array
      */
-    private function _startMultipartUpload(int $parts, string $originalFileName, int $fileLength, bool $clyUpTv, bool $clyUpFrontStore, AssetDataDto $data):array{
+    private function _startMultipartUpload(int $parts, string $originalFileName, int $fileLength, array $scope, AssetDataDto $data):array{
         //generate the key
         $key=Str::orderedUuid()->toString();
         //create the session
@@ -166,7 +161,7 @@ class AssetService
         //sign the urls
         $urls=$this->_signMultipartUpload($result['UploadId'],$key,$parts);
         //create the asset
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$clyUpTv,$clyUpFrontStore,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$scope,auth('sanctum')->user()->id);
         //return
         return [
             "success"=>true,

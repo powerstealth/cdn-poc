@@ -5,6 +5,7 @@ namespace Modules\Asset\Presentation\Api\Requests;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Modules\Asset\Domain\Enums\AssetScopeEnum;
 use Modules\Asset\Domain\Traits\MediaFileTrait;
 use Modules\Asset\Domain\Dto\AssetMultipartUploadDto;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -19,13 +20,12 @@ class AssetMultipartUploadRequest extends FormRequest
     public function rules()
     {
         return [
-            'task'                      => 'required|string|in:'.$this->_multipartUploadTasks(),
-            'file_name'                 => 'required_if:task,start|string',
-            'file_length'               => 'required_if:task,start|integer|min:1000000',
-            'scope_clyup_tv'            => 'required_if:task,start|bool',
-            'scope_clyup_front_store'   => 'required_if:task,start|bool',
-            'parts'                     => 'required_if:task,start|integer|min:2|max:999',
-            'asset_id'                 => 'required_if:task,complete|string',
+            'task'          => 'required|string|in:'.$this->_multipartUploadTasks(),
+            'file_name'     => 'required_if:task,start|string',
+            'file_length'   => 'required_if:task,start|integer|min:1000000',
+            'scope'         => 'required_if:task,start|array|in:'.implode(",",AssetScopeEnum::getAllNames()),
+            'parts'         => 'required_if:task,start|integer|min:2|max:999',
+            'asset_id'      => 'required_if:task,complete|string',
         ];
     }
 
@@ -56,6 +56,8 @@ class AssetMultipartUploadRequest extends FormRequest
             "task.in" => "The task must be: ".$this->_multipartUploadTasks(),
             "parts.min" => "The number of parts must be at least 2",
             "parts.max" => "The number of parts must be at most 999",
+            "scope.in" => "The value must takes: ".implode(", ",AssetScopeEnum::getAllNames()),
+            "scope.array" => "The value must be an array"
         ];
     }
 

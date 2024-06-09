@@ -24,8 +24,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string|null $uploadId
      * @param array       $presignedUrls
      * @param int         $fileLength
-     * @param bool        $clyUpTv
-     * @param bool        $clyUpFrontStore
+     * @param array       $scope
      * @param string      $owner
      * @param bool        $published
      * @return Asset|\Exception
@@ -39,8 +38,7 @@ class AssetRepository implements AssetRepositoryInterface
         ?string $uploadId,
         array $presignedUrls,
         int $fileLength,
-        bool $clyUpTv,
-        bool $clyUpFrontStore,
+        array $scope,
         string $owner,
         bool $published=false,
     ): Asset|\Exception{
@@ -64,8 +62,7 @@ class AssetRepository implements AssetRepositoryInterface
                 'length'=>$fileLength
             ],
         ];
-        $asset->clyup_tv=$clyUpTv;
-        $asset->clyup_front_store=$clyUpFrontStore;
+        $asset->scope=$scope;
         $asset->save();
         return $asset;
     }
@@ -162,7 +159,10 @@ class AssetRepository implements AssetRepositoryInterface
             //add filters
             if(count($filters)>0){
                 foreach ($filters as $filter){
-                    $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                    if($filter[1]=="in")
+                        $assets=$assets->whereIn($filter[0],[$filter[2]]);
+                    else
+                        $assets=$assets->where($filter[0],$filter[1],$filter[2]);
                 }
             }
             //sort query
@@ -252,5 +252,5 @@ class AssetRepository implements AssetRepositoryInterface
         else
             return false;
     }
-    
+
 }
