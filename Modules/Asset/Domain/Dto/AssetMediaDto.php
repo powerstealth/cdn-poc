@@ -26,7 +26,7 @@ class AssetMediaDto extends Data
     {
         return new self(
             $request->hls,
-            $request->key_frame
+            $request->key_frame,
         );
     }
 }

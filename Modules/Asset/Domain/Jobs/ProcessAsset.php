@@ -221,7 +221,14 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         //set the source
         $source=Storage::disk('s3_ingest')->get($key);
         //move
-        Storage::disk('s3_media')->put($this->assetId."/original/".$originalFile, $source);
+        Storage::disk('s3_media')
+            ->put(
+                $this->assetId."/original/".$originalFile,
+                $source,
+                [
+                    'ContentDisposition' => 'attachment',
+                ]
+            );
     }
 
     /**

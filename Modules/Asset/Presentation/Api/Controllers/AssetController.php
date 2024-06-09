@@ -5,6 +5,7 @@ namespace Modules\Asset\Presentation\Api\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
@@ -142,5 +143,18 @@ class AssetController extends Controller
                 return response()->json($resource,$resource->responseStatus);
             }
         }
+    }
+
+    /**
+     * Download the original asset
+     * @param AssetInfoRequest $request
+     * @return JsonResponse
+     */
+    public function downloadOriginalAsset(AssetInfoRequest $request):JsonResponse
+    {
+        //check availability
+        $response=$this->assetService->downloadAsset($request->data()->id);
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
     }
 }

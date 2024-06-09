@@ -470,6 +470,37 @@ class AssetService
     }
 
     /**
+     * Download an asset
+     * @param string $assetId
+     * @return array
+     */
+    public function downloadAsset(string $assetId):array
+    {
+        //check the asset
+        $asset=$this->assetRepository->getAsset($assetId);
+        if($asset instanceof \Exception){
+            $requestData=[
+                "success"=>false,
+                "message"=>"An error was occurred",
+                "data"=>null,
+                "error"=>$asset->getMessage(),
+                "response_status"=>400
+            ];
+        }else{
+            $requestData=[
+                "success"=>true,
+                "message"=>"",
+                "data"=>[
+                    "private_url" => Storage::disk('s3_media')->temporaryUrl($asset->_id."/original/".$asset->ingest["file"]["original_filename"], now()->addMinutes(120))
+                ],
+                "error"=>null,
+                "response_status"=>200
+            ];
+        }
+        return $requestData;
+    }
+
+    /**
      * Purge asset
      * @param string $assetId
      * @return void

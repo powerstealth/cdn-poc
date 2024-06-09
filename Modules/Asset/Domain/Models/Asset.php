@@ -2,6 +2,7 @@
 
 namespace Modules\Asset\Domain\Models;
 
+use Illuminate\Support\Facades\Storage;
 use Modules\Auth\Domain\Models\User;
 use MongoDB\Laravel\Eloquent\Model;
 use Modules\Asset\Domain\Dto\AssetMediaDto;
@@ -46,7 +47,7 @@ class Asset extends Model
     {
         $media=new AssetMediaDto(
             env("AWS_MEDIA_URL").$this->_id."/stream/index.m3u8",
-            env("AWS_MEDIA_URL").$this->_id."/frames/frame_00003.jpg",
+            env("AWS_MEDIA_URL").$this->_id."/frames/frame_00003.jpg"
         );
         return $media->toArray();
     }
