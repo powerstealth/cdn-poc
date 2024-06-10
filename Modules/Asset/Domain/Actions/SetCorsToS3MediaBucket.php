@@ -22,7 +22,7 @@ class SetCorsToS3MediaBucket
                 'CORSRules' => [
                     [
                         'AllowedOrigins' => ['*'],
-                        'AllowedMethods' => ['GET'],
+                        'AllowedMethods' => ['GET','PUT','HEAD'],
                         'AllowedHeaders' => ['*'],
                         'MaxAgeSeconds' => 3000,
                     ]

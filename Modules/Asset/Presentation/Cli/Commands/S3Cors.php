@@ -19,7 +19,7 @@ class S3Cors extends Command
      *
      * @var string
      */
-    protected $description = 'Add cors to a S3 bucket';
+    protected $description = 'Add cors to a S3 buckets';
 
     /**
      * Create a new command instance.

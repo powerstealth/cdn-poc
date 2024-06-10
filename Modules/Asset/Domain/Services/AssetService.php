@@ -191,10 +191,9 @@ class AssetService
                 'Key'        => $key,
                 'UploadId'   => $uploadId,
                 'PartNumber' => $i,
-                //'ContentType' => 'application/octet-stream',
             ]);
             $result = $this->s3Client->createPresignedRequest($command, time()+env("AWS_PRESIGNED_TIME"));
-            $preSignedUrls[$i]=(string) $result->getUri();
+            $preSignedUrls[]=(string) $result->getUri();
         }
         return $preSignedUrls;
     }
