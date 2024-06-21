@@ -71,7 +71,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             //check the file length
             if($fileLength==$file["ContentLength"]){
                 //update the asset's status
-                $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::PROCESSING->name);
+                $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::PROCESSING->name);
                 //the file length is ok then check if is a video
                 $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
                 if($this->_isVideo($tempUrl)){
@@ -93,8 +93,11 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             }else{
                 throw new \Exception("The file length is wrong. Upload it again.");
             }
-            $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::COMPLETED->name);
+            $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::COMPLETED->name);
         }catch (\Exception $e){
+            //on error
+            $this->fail($e->getMessage());
+        }catch (\Error $e){
             //on error
             $this->fail($e->getMessage());
         }

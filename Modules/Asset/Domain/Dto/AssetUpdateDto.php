@@ -8,15 +8,18 @@ use Spatie\LaravelData\Data;
 class AssetUpdateDto extends Data
 {
     /**
-     * Construct
+     * @param string      $id
      * @param string|null $title
      * @param string|null $description
+     * @param array|null  $tags
+     * @param bool|null   $published
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
         public string $id,
         public ?string $title,
         public ?string $description,
+        public ?array $tags,
         public ?bool $published,
     ){}
 
@@ -30,6 +33,7 @@ class AssetUpdateDto extends Data
             $request->id,
             $request->title,
             $request->description,
+            $request->tags,
             $request->published,
         );
     }

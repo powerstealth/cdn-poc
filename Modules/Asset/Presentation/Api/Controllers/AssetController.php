@@ -41,7 +41,6 @@ class AssetController extends Controller
         $response=$this->assetService->setUploadSession(
             $request->data()->file_name,
             $request->data()->file_length,
-            $request->data()->scope,
         );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
@@ -58,7 +57,6 @@ class AssetController extends Controller
             $request->data()->task,
             $request->data()->file_name,
             $request->data()->file_length,
-            $request->data()->scope,
             $request->data()->asset_id,
             $request->data()->parts,
             $request->data()->data,

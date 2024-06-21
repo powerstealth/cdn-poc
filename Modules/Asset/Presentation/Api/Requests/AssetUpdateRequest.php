@@ -18,6 +18,7 @@ class AssetUpdateRequest extends FormRequest
         return [
             'title' => 'string|max:255',
             'description' => 'string',
+            'tags' => 'array',
             'published' => 'bool'
         ];
     }
@@ -42,7 +43,8 @@ class AssetUpdateRequest extends FormRequest
             "*.required" => "The param is required",
             "*.string" => "The param must be a string",
             "*.max" => "The param length must be at lease 255 characters",
-            "*.boolean" => "The param can take true or false"
+            "*.boolean" => "The param can take true or false",
+            "*.array" => "The param must be an array"
         ];
     }
 

@@ -76,13 +76,12 @@ class AssetService
      * Get user info
      * @param string $fileName
      * @param int    $fileLength
-     * @param array $scope
      * @return array
      */
-    public function setUploadSession(string $fileName, int $fileLength, array $scope):array{
+    public function setUploadSession(string $fileName, int $fileLength):array{
         $fileName=Str::orderedUuid();
         $presignedUrl = Storage::disk('s3_ingest')->temporaryUploadUrl($fileName, now()->addMinutes(60));
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,$scope,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,auth('sanctum')->user()->id);
         return [
             "success"=>true,
             "message"=>"",
@@ -100,7 +99,6 @@ class AssetService
      * @param string      $task
      * @param string|null $originalFileName
      * @param int|null    $fileLength
-     * @param array|null  $scope
      * @param string|null $assetId
      * @param int|null    $parts
      * @param array|null  $data
@@ -110,7 +108,6 @@ class AssetService
         string $task,
         ?string $originalFileName,
         ?int $fileLength,
-        ?array $scope,
         ?string $assetId,
         ?int $parts,
         ?array $data
@@ -118,7 +115,7 @@ class AssetService
         try {
             switch ($task){
                 case 'start':{
-                    return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,$scope,AssetDataDto::from($data));
+                    return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,AssetDataDto::from($data));
                 }
                 case 'complete':{
                     return $this->_completeMultipartUpload($assetId);
@@ -130,7 +127,7 @@ class AssetService
             if(isset($assetId)){
                 $asset=$this->assetRepository->getAsset($assetId);
                 if($assetId!==null && in_array($asset->status,[AssetStatusEnum::UPLOADED->name]))
-                    $this->assetRepository->updateAsset($assetId,null,null,AssetStatusEnum::ERROR->name);
+                    $this->assetRepository->updateAsset($assetId,null,AssetStatusEnum::ERROR->name);
             }
             return [
                 "success"=>false,
@@ -146,11 +143,10 @@ class AssetService
      * @param int          $parts
      * @param string       $originalFileName
      * @param int          $fileLength
-     * @param array        $scope
      * @param AssetDataDto $data
      * @return array
      */
-    private function _startMultipartUpload(int $parts, string $originalFileName, int $fileLength, array $scope, AssetDataDto $data):array{
+    private function _startMultipartUpload(int $parts, string $originalFileName, int $fileLength, AssetDataDto $data):array{
         //generate the key
         $key=Str::orderedUuid()->toString();
         //create the session
@@ -162,7 +158,7 @@ class AssetService
         //sign the urls
         $urls=$this->_signMultipartUpload($result['UploadId'],$key,$parts);
         //create the asset
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$originalFileName,$key,$result['UploadId'],$urls,$fileLength,$scope,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$data->tags??[],$originalFileName,$key,$result['UploadId'],$urls,$fileLength,auth('sanctum')->user()->id);
         //return
         return [
             "success"=>true,
@@ -240,7 +236,7 @@ class AssetService
                 'visibility' => 'public',
         ]);
         //set asset status
-        $this->assetRepository->updateAsset($assetId,null,null,AssetStatusEnum::UPLOADED->name);
+        $this->assetRepository->updateAsset($assetId,null,AssetStatusEnum::UPLOADED->name);
         //run process job
         ProcessAsset::dispatch($assetId)->onQueue(env("WORKER_ID"));
         return [
@@ -360,7 +356,7 @@ class AssetService
      */
     public function updateAsset(string $id, array $data, ?bool $published):array{
         //update the asset
-        $data=$this->assetRepository->updateAsset($id,null,$data,null,$published);
+        $data=$this->assetRepository->updateAsset($id,$data,null,$published);
         //set visibility
         if($published!==null)
             $this->_setPhysicalAssetVisibility($id,$published);
@@ -424,7 +420,7 @@ class AssetService
     public function purgeDeletedAssets():void{
         //get all deleted assets
         $filters=[['deleted_at','<',Carbon::now()->subDays(1)]];
-        $deletedAssets=$this->assetRepository->listAssets(0,100,'_id','asc',$filters,AssetTrashedStatusEnum::ONLYTRASHED,false);
+        $deletedAssets=$this->assetRepository->listAssets(0,100,'_id','asc',$filters,"", AssetTrashedStatusEnum::ONLYTRASHED,false);
         foreach($deletedAssets as $deletedAsset){
             $this->deleteAsset($deletedAsset["_id"],true);
         }

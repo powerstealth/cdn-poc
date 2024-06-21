@@ -20,12 +20,12 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string      $status
      * @param string      $title
      * @param string      $description
+     * @param array       $tags
      * @param string      $fileName
      * @param string|null $key
      * @param string|null $uploadId
      * @param array       $presignedUrls
      * @param int         $fileLength
-     * @param array       $scope
      * @param string      $owner
      * @param bool        $published
      * @return Asset|\Exception
@@ -34,12 +34,12 @@ class AssetRepository implements AssetRepositoryInterface
         string $status,
         string $title,
         string $description,
+        array $tags,
         string $fileName,
         ?string $key,
         ?string $uploadId,
         array $presignedUrls,
         int $fileLength,
-        array $scope,
         string $owner,
         bool $published=false,
     ): Asset|\Exception{
@@ -50,7 +50,8 @@ class AssetRepository implements AssetRepositoryInterface
         $asset->file_name=$fileName;
         $asset->data=[
             'title'=>$title,
-            'description'=>$description
+            'description'=>$description,
+            'tags'=>$tags
         ];
         $asset->ingest=[
             's3'=>[
@@ -63,7 +64,6 @@ class AssetRepository implements AssetRepositoryInterface
                 'length'=>$fileLength
             ],
         ];
-        $asset->scope=$scope;
         $asset->save();
         return $asset;
     }
@@ -202,7 +202,6 @@ class AssetRepository implements AssetRepositoryInterface
     /**
      * Update an asset
      * @param string      $id
-     * @param array|null  $scope
      * @param array|null  $data
      * @param string|null $status
      * @param bool|null   $published
@@ -211,7 +210,6 @@ class AssetRepository implements AssetRepositoryInterface
      */
     public function updateAsset(
         string $id,
-        ?array $scope,
         ?array $data,
         ?string $status,
         ?bool $published=null,
@@ -230,11 +228,8 @@ class AssetRepository implements AssetRepositoryInterface
                     ->first();
             if($asset===null)
                 throw new \Exception("The asset is not available");
-            //set the scope
-            if(isset($scope["clyup_tv"]) && $scope["clyup_tv"]!=null) $asset->clyup_tv=$scope["clyup_tv"];
-            if(isset($scope["clyup_front_store"]) && $scope["clyup_front_store"]!=null) $asset->clyup_tv=$scope["clyup_front_store"];
             //set the data
-            $assetDataDto=new AssetDataDto($asset->data["title"],$asset->data["description"]);
+            $assetDataDto=new AssetDataDto($asset->data["title"] ?? null,$asset->data["description"] ?? null,$asset->data["tags"] ?? null);
             if($data!==null){
                 foreach($data as $k=>$v){
                     if($v!==null){

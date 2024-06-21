@@ -21,8 +21,6 @@ class AssetUploadSessionRequest extends FormRequest
         return [
             'file_name' => 'string|required',
             'file_length' => 'integer|required|min:1000000',
-            'scope_clyup_tv' => 'bool|required',
-            'scope_clyup_front_store' => 'bool|required',
         ];
     }
 

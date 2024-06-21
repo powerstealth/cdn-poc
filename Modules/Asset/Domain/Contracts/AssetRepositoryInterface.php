@@ -11,18 +11,18 @@ interface AssetRepositoryInterface
         string $status,
         string $title,
         string $description,
+        array $tags,
         string $fileName,
         ?string $key,
         ?string $uploadId,
         array $presignedUrls,
         int $fileLength,
-        array $scope,
         string $owner,
         bool $published
     ): Asset|\Exception;
     public function getAsset(string $id): Asset|\Exception;
     public function isAssetPublished(string $id): bool|\Exception;
-    public function updateAsset(string $id, ?array $scope, ?array $data, ?string $status, ?bool $published, ?array $mediaInfo): Asset|\Exception;
+    public function updateAsset(string $id, ?array $data, ?string $status, ?bool $published, ?array $mediaInfo): Asset|\Exception;
     public function listAssets(int $page, int $limit, string $sortField, string $sortOrder, array $filters, ?string $search, AssetTrashedStatusEnum $trashedItems, bool $setPagination): array|\Exception;
     public function deleteAsset(string $id, ?string $status, bool $hard): bool;
 }

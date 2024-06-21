@@ -8,14 +8,15 @@ use Spatie\LaravelData\Data;
 class AssetDataDto extends Data
 {
     /**
-     * Construct
      * @param string|null $title
      * @param string|null $description
+     * @param array|null  $tags
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
         public ?string $title,
         public ?string $description,
+        public ?array $tags,
     ){}
 
     /**
@@ -26,7 +27,8 @@ class AssetDataDto extends Data
     {
         return new self(
             $request->title,
-            $request->description
+            $request->description,
+            $request->tags
         );
     }
 }
