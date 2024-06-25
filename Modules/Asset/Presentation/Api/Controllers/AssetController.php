@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
+use Modules\Asset\Presentation\Api\Requests\AssetDeleteRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetListRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUpdateRequest;
@@ -110,13 +111,25 @@ class AssetController extends Controller
     }
 
     /**
-     * Delete an asset
-     * @param AssetInfoRequest $request
+     * Soft delete an asset
+     * @param AssetDeleteRequest $request
      * @return JsonResponse|null
      */
-    public function deleteAsset(AssetInfoRequest $request):null|JsonResponse
+    public function softDeleteAsset(AssetDeleteRequest $request):null|JsonResponse
     {
         $response=$this->assetService->deleteAsset($request->data()->id, false);
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Hard delete an asset
+     * @param AssetDeleteRequest $request
+     * @return JsonResponse|null
+     */
+    public function hardDeleteAsset(AssetDeleteRequest $request):null|JsonResponse
+    {
+        $response=$this->assetService->deleteAsset($request->data()->id, true);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

@@ -126,7 +126,13 @@ class AssetService
             //set asset with error
             if(isset($assetId)){
                 $asset=$this->assetRepository->getAsset($assetId);
-                if($assetId!==null && in_array($asset->status,[AssetStatusEnum::UPLOADED->name]))
+                if(
+                    $assetId!==null &&
+                    (
+                        !isset($asset->status) ||
+                        (isset($asset->status) && in_array($asset->status,[AssetStatusEnum::UPLOADED->name]))
+                    )
+                )
                     $this->assetRepository->updateAsset($assetId,null,AssetStatusEnum::ERROR->name);
             }
             return [
@@ -389,8 +395,6 @@ class AssetService
     public function deleteAsset(string $id,bool $hard=false):array{
         if($hard) //remove physical files
             $this->_purgeAsset($id);
-        else //disable the physical files
-            $this->_disableAsset($id);
         //remove asset
         $data=$this->assetRepository->deleteAsset($id,null,$hard);
         if($data instanceof \Exception){
