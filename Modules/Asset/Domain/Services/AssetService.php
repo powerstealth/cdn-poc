@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Dto\AssetDataDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
 use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
+use Modules\Asset\Domain\Enums\TagGroupsEnum;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
@@ -81,7 +82,7 @@ class AssetService
     public function setUploadSession(string $fileName, int $fileLength):array{
         $fileName=Str::orderedUuid();
         $presignedUrl = Storage::disk('s3_ingest')->temporaryUploadUrl($fileName, now()->addMinutes(60));
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",$fileName,null,null,[$presignedUrl["url"]],$fileLength,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",[],$fileName,null,null,[$presignedUrl["url"]],$fileLength,auth('sanctum')->user()->id);
         return [
             "success"=>true,
             "message"=>"",
@@ -497,6 +498,22 @@ class AssetService
             ];
         }
         return $requestData;
+    }
+
+    /**
+     * Get asset's categories list
+     * @return array
+     */
+    public function getTagGroups():array{
+        return [
+            "success"=>true,
+            "message"=>"",
+            "data"=>[
+                "items" => TagGroupsEnum::getAllItemsAsArray()
+            ],
+            "error"=>null,
+            "response_status"=>200
+        ];
     }
 
     /**

@@ -51,8 +51,8 @@ class AssetRepository implements AssetRepositoryInterface
         $asset->data=[
             'title'=>$title,
             'description'=>$description,
-            'tags'=>$tags
         ];
+        $asset->tags=$tags;
         $asset->ingest=[
             's3'=>[
                 'key'=>$key ?? null,
@@ -229,15 +229,21 @@ class AssetRepository implements AssetRepositoryInterface
             if($asset===null)
                 throw new \Exception("The asset is not available");
             //set the data
-            $assetDataDto=new AssetDataDto($asset->data["title"] ?? null,$asset->data["description"] ?? null,$asset->data["tags"] ?? null);
-            if($data!==null){
-                foreach($data as $k=>$v){
-                    if($v!==null){
-                        $assetDataDto->$k=$v;
-                    }
+            $assetDataDto=new AssetDataDto($data["title"] ?? null,$data["description"] ?? null,$data["tags"] ?? null);
+
+            $asset->data=[
+                'title'=>$assetDataDto->title !== null ? $assetDataDto->title : $assetDataDto->title ?? null,
+                'description'=>$assetDataDto->description !== null ? $assetDataDto->description : $asset->data['description'] ?? null,
+            ];
+
+            //set the tags
+            if(count($data["tags"])>0){
+                $tagGroups=$asset->tags;
+                foreach ($data["tags"] as $k=>$tags){
+                    $tagGroups[$k]=$tags;
                 }
+                $asset->tags=$tagGroups;
             }
-            $asset->data=$assetDataDto->toArray();
             //set the status
             if($status!==null)
                 $asset->status=$status;

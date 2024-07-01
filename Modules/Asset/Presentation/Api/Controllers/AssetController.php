@@ -12,9 +12,11 @@ use Modules\Asset\Presentation\Api\Requests\AssetDeleteRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetListRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUpdateRequest;
+use Modules\Asset\Presentation\Api\Requests\CategoryListRequest;
 use Modules\Asset\Presentation\Api\Resources\AssetResource;
 use Modules\Asset\Presentation\Api\Requests\AssetMultipartUploadRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUploadSessionRequest;
+use Modules\Asset\Presentation\Api\Resources\CategoryResource;
 
 class AssetController extends Controller
 {
@@ -166,6 +168,18 @@ class AssetController extends Controller
         //check availability
         $response=$this->assetService->downloadAsset($request->data()->id);
         $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Get the tag groups
+     * @param Request $request
+     * @return JsonResponse|null
+     */
+    public function getTagGroups(Request $request):null|JsonResponse
+    {
+        $response=$this->assetService->getTagGroups();
+        $resource=CategoryResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
 }

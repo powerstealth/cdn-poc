@@ -23,6 +23,20 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
 
     const JOBNAME="Process an asset";
 
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 5;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     *
+     * @var int
+     */
+    public $backoff = 60; //seconds
+
     public function uniqueId(): string
     {
         return "ProcessAsset_".Str::uuid();
@@ -96,9 +110,11 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::COMPLETED->name);
         }catch (\Exception $e){
             //on error
+            $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
             $this->fail($e->getMessage());
         }catch (\Error $e){
             //on error
+            $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
             $this->fail($e->getMessage());
         }
     }
