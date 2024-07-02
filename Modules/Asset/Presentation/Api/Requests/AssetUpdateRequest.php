@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Modules\Asset\Domain\Dto\AssetUpdateDto;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Modules\Asset\Presentation\Api\ValidationRules\TagRule;
 
 class AssetUpdateRequest extends FormRequest
 {
@@ -18,7 +19,7 @@ class AssetUpdateRequest extends FormRequest
         return [
             'title' => 'string|max:255',
             'description' => 'string',
-            'tags' => 'array',
+            'tags' => new TagRule(),
             'published' => 'bool'
         ];
     }
