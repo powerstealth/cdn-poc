@@ -388,6 +388,40 @@ class AssetService
     }
 
     /**
+     * Upload a poster to an asset
+     * @param string                        $id
+     * @param \Illuminate\Http\UploadedFile $poster
+     * @return array
+     */
+    public function uploadPosterToAsset(string $id, \Illuminate\Http\UploadedFile $poster):array{
+        $frameTitle='frame_custom.jpg';
+        if ($poster->getClientOriginalExtension() !== 'jpg' && $poster->getClientOriginalExtension() !== 'jpeg') {
+            $image = Image::make($poster->getRealPath());
+            $jpgImage = $image->encode('jpg');
+            $ret = $jpgImage->storeAs($id.'/frames/',$frameTitle,'s3_media');
+        }else
+            $ret = $poster->storeAs($id.'/frames/',$frameTitle,'s3_media');
+        //return
+        if(!$ret instanceof \Exception){
+            return [
+                "success"=>true,
+                "message"=>"The poster has been uploaded successfully",
+                "data"=>null,
+                "error"=>null,
+                "response_status"=>200
+            ];
+        }else{
+            return [
+                "success"=>false,
+                "message"=>"An error was occurred",
+                "data"=>null,
+                "error"=>$data->getMessage(),
+                "response_status"=>400
+            ];
+        }
+    }
+
+    /**
      * Delete an asset
      * @param string  $id
      * @param bool $hard

@@ -5,12 +5,14 @@ namespace Modules\Asset\Presentation\Api\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Services\AssetService;
 use App\Http\Controllers\Controller as Controller;
 use Modules\Asset\Presentation\Api\Requests\AssetDeleteRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetInfoRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetListRequest;
+use Modules\Asset\Presentation\Api\Requests\AssetPosterRequest;
 use Modules\Asset\Presentation\Api\Requests\AssetUpdateRequest;
 use Modules\Asset\Presentation\Api\Requests\CategoryListRequest;
 use Modules\Asset\Presentation\Api\Resources\AssetResource;
@@ -108,6 +110,18 @@ class AssetController extends Controller
     public function updateAsset(AssetUpdateRequest $request):null|JsonResponse
     {
         $response=$this->assetService->updateAsset($request->data()->id, $request->data()->toArray(), $request->data()->published);
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Upload a new poster
+     * @param AssetPosterRequest $request
+     * @return JsonResponse|null
+     */
+    public function uploadPosterToAsset(AssetPosterRequest $request):null|JsonResponse
+    {
+        $response=$this->assetService->uploadPosterToAsset($request->id, $request->poster);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

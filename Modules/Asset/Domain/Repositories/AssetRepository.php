@@ -235,14 +235,15 @@ class AssetRepository implements AssetRepositoryInterface
                 'title'=>$assetDataDto->title !== null ? $assetDataDto->title : $assetDataDto->title ?? null,
                 'description'=>$assetDataDto->description !== null ? $assetDataDto->description : $asset->data['description'] ?? null,
             ];
-
             //set the tags
-            if(count($data["tags"])>0){
-                $tagGroups=$asset->tags;
-                foreach ($data["tags"] as $k=>$tags){
-                    $tagGroups[$k]=$tags;
+            if(isset($data["tags"])){
+                if(count($data["tags"])>0){
+                    $tagGroups=$asset->tags;
+                    foreach ($data["tags"] as $k=>$tags){
+                        $tagGroups[$k]=$tags;
+                    }
+                    $asset->tags=$tagGroups;
                 }
-                $asset->tags=$tagGroups;
             }
             //set the status
             if($status!==null)

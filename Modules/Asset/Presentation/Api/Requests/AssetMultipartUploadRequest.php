@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Modules\Asset\Domain\Traits\MediaFileTrait;
 use Modules\Asset\Domain\Dto\AssetMultipartUploadDto;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Modules\Asset\Presentation\Api\ValidationRules\TagRule;
 
 class AssetMultipartUploadRequest extends FormRequest
 {
@@ -24,6 +25,8 @@ class AssetMultipartUploadRequest extends FormRequest
             'file_length'   => 'required_if:task,start|integer|min:1000000',
             'parts'         => 'required_if:task,start|integer|min:2|max:999',
             'asset_id'      => 'required_if:task,complete|string',
+            'data'          => 'array',
+            'data.tags'     => new TagRule(),
         ];
     }
 

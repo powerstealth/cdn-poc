@@ -16,6 +16,8 @@ Route::prefix('1.0')->group(function () {
     Route::get('/asset/{id}',[AssetController::class,'getAsset'])->middleware(AuthSanctum::class);
     //Update an asset
     Route::put('/asset/{id}',[AssetController::class,'updateAsset'])->middleware(AuthSanctum::class);
+    //Upload a poster
+    Route::post('/asset/{id}/poster',[AssetController::class,'uploadPosterToAsset'])->middleware(AuthSanctum::class);
     //Delete an asset (soft)
     Route::delete('/asset/{id}',[AssetController::class,'softDeleteAsset'])->middleware(AuthSanctum::class);
     //Delete an asset (hard)
