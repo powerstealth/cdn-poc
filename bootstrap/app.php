@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::prefix('api')
                 ->middleware('api')
                 ->group(base_path('Modules/Asset/Presentation/Api/routes.php'));
+            Route::prefix('api')
+                ->middleware('api')
+                ->group(base_path('Modules/Tv/Presentation/Api/routes.php'));
         }
     )
     ->withCommands([

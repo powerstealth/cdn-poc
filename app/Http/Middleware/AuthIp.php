@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Modules\Auth\Presentation\Api\Resources\AuthResource;
 
-class AuthSanctum
+class AuthIp
 {
     /**
      * Handle an incoming request.
@@ -17,11 +17,11 @@ class AuthSanctum
     public function handle(Request $request, Closure $next): Response
     {
         try{
-            $user=auth('sanctum')->user();
-            if($user!==null)
-                return $next($request);
-            else
+            $blockIps = ['127.0.0.1'];
+            if (!in_array($request->ip(), $blockIps)) {
                 throw new \Exception("Unauthorized");
+            }else
+                return $next($request);
         }catch (\Exception $e) {
             // Token could not be parsed
             $resource=AuthResource::from([
