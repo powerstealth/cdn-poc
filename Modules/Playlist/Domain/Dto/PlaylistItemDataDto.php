@@ -1,5 +1,5 @@
 <?php
-namespace Modules\Tv\Domain\Dto;
+namespace Modules\Playlist\Domain\Dto;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -7,12 +7,12 @@ use Modules\Asset\Domain\Dto\MapName;
 use Modules\Asset\Domain\Dto\SnakeCaseMapper;
 use Spatie\LaravelData\Data;
 
-class HomeItemDataDto extends Data
+class PlaylistItemDataDto extends Data
 {
     /**
-     * @param MongoDB\BSON\ObjectId $asset_id
-     * @param string $section
-     * @param int    $position
+     * @param \MongoDB\BSON\ObjectId $asset_id
+     * @param string                 $section
+     * @param int                    $position
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(

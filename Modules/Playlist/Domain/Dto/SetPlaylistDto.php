@@ -1,5 +1,5 @@
 <?php
-namespace Modules\Tv\Domain\Dto;
+namespace Modules\Playlist\Domain\Dto;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -7,7 +7,7 @@ use Modules\Asset\Domain\Dto\MapName;
 use Modules\Asset\Domain\Dto\SnakeCaseMapper;
 use Spatie\LaravelData\Data;
 
-class SetHomeDto extends Data
+class SetPlaylistDto extends Data
 {
     /**
      * @param array $items

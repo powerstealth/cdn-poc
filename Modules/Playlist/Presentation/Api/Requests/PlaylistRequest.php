@@ -1,14 +1,14 @@
 <?php
 
-namespace Modules\Tv\Presentation\Api\Requests;
+namespace Modules\Playlist\Presentation\Api\Requests;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Modules\Tv\Domain\Dto\HomeCategoryDto;
+use Modules\Playlist\Domain\Dto\PlaylistCategoryDto;
 
-class HomeRequest extends FormRequest
+class PlaylistRequest extends FormRequest
 {
     /**
      * @return string[]

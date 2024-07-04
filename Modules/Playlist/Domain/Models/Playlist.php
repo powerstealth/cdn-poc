@@ -1,22 +1,21 @@
 <?php
 
-namespace Modules\Tv\Domain\Models;
+namespace Modules\Playlist\Domain\Models;
 
-use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Models\Asset;
 use Modules\Auth\Domain\Models\User;
 use MongoDB\Laravel\Eloquent\Model;
-use Modules\Asset\Domain\Dto\AssetMediaDto;
 use Illuminate\Notifications\Notifiable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Home extends Model
+class Playlist extends Model
 {
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $connection = 'mongodb';
-    protected $collection = 'tv_home';
+    protected $collection = 'playlists';
     protected $primaryKey = '_id';
 
     /**
@@ -37,4 +36,12 @@ class Home extends Model
      */
     protected $hidden = [];
 
+    /**
+     * Asset relation
+     * @return HasOne
+     */
+    public function asset(): HasOne
+    {
+        return $this->hasOne(Asset::class,'_id','asset_id');
+    }
 }

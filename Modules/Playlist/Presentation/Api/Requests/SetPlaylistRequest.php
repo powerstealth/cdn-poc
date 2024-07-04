@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\Tv\Presentation\Api\Requests;
+namespace Modules\Playlist\Presentation\Api\Requests;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Modules\Tv\Domain\Dto\HomeCategoryDto;
-use Modules\Tv\Domain\Dto\SetHomeDto;
+use Modules\Playlist\Domain\Dto\PlaylistCategoryDto;
+use Modules\Playlist\Domain\Dto\SetPlaylistDto;
 
-class SetHomeRequest extends FormRequest
+class SetPlaylistRequest extends FormRequest
 {
     /**
      * @return string[]
@@ -52,10 +52,10 @@ class SetHomeRequest extends FormRequest
 
     /**
      * DTO
-     * @return SetHomeDto
+     * @return SetPlaylistDto
      */
-    public function data():SetHomeDto
+    public function data():SetPlaylistDto
     {
-        return SetHomeDto::fromRequest($this);
+        return SetPlaylistDto::fromRequest($this);
     }
 }

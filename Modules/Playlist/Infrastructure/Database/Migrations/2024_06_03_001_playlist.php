@@ -16,7 +16,7 @@ return new class extends Migration
         /**
          * assets
          */
-        Schema::create('tv_home', function (Blueprint $table) {
+        Schema::create('playlist', function (Blueprint $table) {
 
         });
 
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tv_home');
+        Schema::dropIfExists('playlist');
     }
 };
