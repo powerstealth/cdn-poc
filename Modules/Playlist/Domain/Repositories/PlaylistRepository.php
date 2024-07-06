@@ -21,7 +21,7 @@ class PlaylistRepository implements PlaylistRepositoryInterface
     {
         try {
             //select
-            $contents=Playlist::select('*')->with(['asset']);
+            $contents=Playlist::select('*')->with(['asset'])->has('asset');
             //sort query
             $contents->orderBy('position','asc');
             return $contents->get()->toArray();
