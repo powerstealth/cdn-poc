@@ -110,10 +110,14 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::COMPLETED->name);
         }catch (\Exception $e){
             //on error
+            Log::error("Transcoding exception");
+            Log::error($e->getMessage());
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
             $this->fail($e->getMessage());
         }catch (\Error $e){
             //on error
+            Log::error("Transcoding error");
+            Log::error($e->getMessage());
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
             $this->fail($e->getMessage());
         }
@@ -127,7 +131,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     public function failed(\Throwable $e)
     {
         //fails the job
-        $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
+        Log::error("The job is failed: ".$e->getMessage());
+        $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::ERROR->name);
     }
 
     /**
@@ -162,8 +167,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         $video=FFMpeg::openUrl($tempUrl);
         //get orientation
         $dimensions=$video->getVideoStream()->getDimensions();
-        $width = $dimensions->getWidth();
-        $height = $dimensions->getHeight();
+        $width=$dimensions->getWidth();
+        $height=$dimensions->getHeight();
         //set bitrates and sizes
         $bitrate=$video->getVideoStream()->get("bit_rate")/1000;
         $profiles['SD'] = [
@@ -221,9 +226,14 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
      */
     private function _createThumbnails(string $tempUrl):void
     {
+        //portrait filter
+        $setPortrait = "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2";
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
             ->exportFramesByInterval(10,1024)
+            ->addFilter(function ($filters) use ($setPortrait){
+                $filters->custom($setPortrait);
+            })
             ->toDisk('s3_media');
         //save
         $transcoder->save($this->assetId.'/frames/frame_%05d.jpg');
