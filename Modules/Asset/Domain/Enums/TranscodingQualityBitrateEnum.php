@@ -8,6 +8,7 @@ enum TranscodingQualityBitrateEnum:int implements EnumInterface{
     case FHD = 1920;
     case HD = 1080;
     case SD = 720;
+    case XSD = 360;
 
     /**
      * Return all names

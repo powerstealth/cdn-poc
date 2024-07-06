@@ -182,17 +182,17 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         $bitrate=$video->getVideoStream()->get("bit_rate")/1000;
         $profiles['SD'] = [
             'bitrate' => (new X264)->setKiloBitrate(1000),
-            'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::SD->value.':-2' : 'scale='.(TranscodingQualityBitrateEnum::SD->value/16*9).':-2'
+            'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::SD->value.':-2' : 'scale='.TranscodingQualityBitrateEnum::XSD->value.':-2'
         ];
         if($bitrate>=2000)
             $profiles['HD'] = [
                 'bitrate' => (new X264)->setKiloBitrate(2000),
-                'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::HD->value.':-2' : 'scale='.(TranscodingQualityBitrateEnum::SD->value/16*9).':-2'
+                'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::HD->value.':-2' : 'scale='.TranscodingQualityBitrateEnum::SD->value.':-2'
             ];
         if($bitrate>=4000)
             $profiles['FHD'] = [
                 'bitrate' => (new X264)->setKiloBitrate(4000),
-                'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::FHD->value.':-2' : 'scale='.(TranscodingQualityBitrateEnum::SD->value/16*9).':-2'
+                'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::FHD->value.':-2' : 'scale='.TranscodingQualityBitrateEnum::HD->value.':-2'
             ];
         unset($video);
         $transcoder=FFMpeg::openUrl($tempUrl)
