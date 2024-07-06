@@ -46,8 +46,10 @@ class Asset extends Model
     {
         if(Storage::disk('s3_media')->exists($this->_id.'/frames/frame_custom.jpg'))
             $customKeyFrame='frame_custom.jpg';
-        else
+        elseif(Storage::disk('s3_media')->exists($this->_id.'/frames/frame_custom.jpg'))
             $customKeyFrame='frame_00003.jpg';
+        else
+            $customKeyFrame='frame_00001.jpg';
         $media=new AssetMediaDto(
             env("AWS_MEDIA_URL").$this->_id."/stream/index.m3u8",
             env("AWS_MEDIA_URL").$this->_id."/frames/".$customKeyFrame

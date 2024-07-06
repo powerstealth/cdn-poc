@@ -167,23 +167,23 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         $video=FFMpeg::openUrl($tempUrl);
         //get orientation
         $dimensions=$video->getVideoStream()->getDimensions();
-        $width=$dimensions->getWidth();
-        $height=$dimensions->getHeight();
+        $width=(int)$dimensions->getWidth();
+        $height=(int)$dimensions->getHeight();
         //set bitrates and sizes
         $bitrate=$video->getVideoStream()->get("bit_rate")/1000;
         $profiles['SD'] = [
             'bitrate' => (new X264)->setKiloBitrate(1000),
-            'size' => ($width > $height) ? 'scale=640:-1' : 'scale=480:-1'
+            'size' => ($width > $height) ? 'scale=640:-2' : 'scale=480:-2'
         ];
         if($bitrate>=2000)
             $profiles['HD'] = [
                 'bitrate' => (new X264)->setKiloBitrate(2000),
-                'size' => ($width > $height) ? 'scale=1280:-1' : 'scale=720:-1'
+                'size' => ($width > $height) ? 'scale=1280:-2' : 'scale=720:-2'
             ];
         if($bitrate>=4000)
             $profiles['FHD'] = [
                 'bitrate' => (new X264)->setKiloBitrate(4000),
-                'size' => ($width > $height) ? 'scale=1920:-1' : 'scale=1080:-1'
+                'size' => ($width > $height) ? 'scale=1920:-2' : 'scale=1080:-2'
             ];
         unset($video);
         $transcoder=FFMpeg::openUrl($tempUrl)
