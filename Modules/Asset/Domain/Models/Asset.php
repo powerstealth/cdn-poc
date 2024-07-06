@@ -44,15 +44,23 @@ class Asset extends Model
 
     public function getMediaAttribute():array
     {
-        if(Storage::disk('s3_media')->exists($this->_id.'/frames/frame_custom.jpg'))
-            $customKeyFrame='frame_custom.jpg';
-        elseif(Storage::disk('s3_media')->exists($this->_id.'/frames/frame_custom.jpg'))
-            $customKeyFrame='frame_00003.jpg';
+        //check the frames availability
+        if(Storage::disk('s3_media')->exists($this->_id.'/frames/HD/frame_custom.jpg'))
+            $frame='frame_custom.jpg';
+        elseif(Storage::disk('s3_media')->exists($this->_id.'/frames/HD/frame_custom.jpg'))
+            $frame='frame_00003.jpg';
         else
-            $customKeyFrame='frame_00001.jpg';
+            $frame='frame_00001.jpg';
+        //set the frame's qualities
+        $keyFrames=[
+            'HD' => env("AWS_MEDIA_URL").$this->_id."/frames/HD/".$frame,
+            'SD' => env("AWS_MEDIA_URL").$this->_id."/frames/SD/".$frame,
+            'THUMBNAIL' => env("AWS_MEDIA_URL").$this->_id."/frames/THUMBNAIL/".$frame,
+        ];
+        //set the DTO
         $media=new AssetMediaDto(
             env("AWS_MEDIA_URL").$this->_id."/stream/index.m3u8",
-            env("AWS_MEDIA_URL").$this->_id."/frames/".$customKeyFrame
+            $keyFrames
         );
         return $media->toArray();
     }

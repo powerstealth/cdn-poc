@@ -8,6 +8,8 @@ use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Enums\FrameQualitiesEnum;
+use Modules\Asset\Domain\Enums\TranscodingQualityBitrateEnum;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -41,6 +43,12 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     {
         return "ProcessAsset_".Str::uuid();
     }
+
+    /**
+     * Frame interval
+     * @var int
+     */
+    protected int $_frameInterval = 10;
 
     /**
      * Asset
@@ -95,8 +103,12 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                     $this->_getMediaInfo($presignedUrl);
                     //create tile
                     $this->_createTile($presignedUrl);
-                    //create thumbnails
-                    $this->_createThumbnails($presignedUrl);
+                    //create HD frames
+                    $this->_createFrames($presignedUrl, FrameQualitiesEnum::HD);
+                    //create SD frames
+                    $this->_createFrames($presignedUrl, FrameQualitiesEnum::SD);
+                    //create thumbnails frames
+                    $this->_createFrames($presignedUrl, FrameQualitiesEnum::THUMBNAIL);
                     //convert video to HLS
                     $this->_convertVideoToHls($presignedUrl);
                     //move the original file
@@ -110,16 +122,12 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::COMPLETED->name);
         }catch (\Exception $e){
             //on error
-            Log::error("Transcoding exception");
-            Log::error($e->getMessage());
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
-            $this->fail($e->getMessage());
+            $this->fail($e);
         }catch (\Error $e){
             //on error
-            Log::error("Transcoding error");
-            Log::error($e->getMessage());
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
-            $this->fail($e->getMessage());
+            $this->fail($e);
         }
     }
 
@@ -132,6 +140,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     {
         //fails the job
         Log::error("The job is failed: ".$e->getMessage());
+        Log::debug(json_encode([$e->getCode(), $e->getFile()."#".$e->getLine(),$e->getTrace()]));
         $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::ERROR->name);
     }
 
@@ -173,17 +182,17 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         $bitrate=$video->getVideoStream()->get("bit_rate")/1000;
         $profiles['SD'] = [
             'bitrate' => (new X264)->setKiloBitrate(1000),
-            'size' => ($width > $height) ? 'scale=640:-2' : 'scale=480:-2'
+            'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::SD->value.':-2' : 'scale='.(TranscodingQualityBitrateEnum::SD->value/16*9).':-2'
         ];
         if($bitrate>=2000)
             $profiles['HD'] = [
                 'bitrate' => (new X264)->setKiloBitrate(2000),
-                'size' => ($width > $height) ? 'scale=1280:-2' : 'scale=720:-2'
+                'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::HD->value.':-2' : 'scale='.(TranscodingQualityBitrateEnum::SD->value/16*9).':-2'
             ];
         if($bitrate>=4000)
             $profiles['FHD'] = [
                 'bitrate' => (new X264)->setKiloBitrate(4000),
-                'size' => ($width > $height) ? 'scale=1920:-2' : 'scale=1080:-2'
+                'size' => ($width > $height) ? 'scale='.TranscodingQualityBitrateEnum::FHD->value.':-2' : 'scale='.(TranscodingQualityBitrateEnum::SD->value/16*9).':-2'
             ];
         unset($video);
         $transcoder=FFMpeg::openUrl($tempUrl)
@@ -209,7 +218,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
             ->exportTile(function (TileFactory $factory) {
-                $factory->interval(10)
+                $factory->interval($this->_frameInterval)
                     ->scale(320, 180)
                     ->grid(5, 2)
                     ->generateVTT($this->assetId.'/tile/tile.vtt');
@@ -220,23 +229,27 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     * Create the thumbnails
-     * @param string $tempUrl
+     * Create the frames
+     * @param string             $tempUrl
+     * @param FrameQualitiesEnum $quality
      * @return void
      */
-    private function _createThumbnails(string $tempUrl):void
+    private function _createFrames(string $tempUrl, FrameQualitiesEnum $quality):void
     {
-        //portrait filter
-        $setPortrait = "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2";
+        //set the width
+        $width=$quality->value;
+        //set the 16:9 with letterbox
+        $height=(int)$width/16*9;
+        $fLetterbox = "scale=".$width.":".$height.":force_original_aspect_ratio=decrease,pad=".$width.":".$height.":(ow-iw)/2:(oh-ih)/2";
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
-            ->exportFramesByInterval(10,1024)
-            ->addFilter(function ($filters) use ($setPortrait){
-                $filters->custom($setPortrait);
+            ->exportFramesByInterval($this->_frameInterval)
+            ->addFilter(function ($filters) use ($fLetterbox){
+                $filters->custom($fLetterbox);
             })
             ->toDisk('s3_media');
         //save
-        $transcoder->save($this->assetId.'/frames/frame_%05d.jpg');
+        $transcoder->save($this->assetId.'/frames/'.$quality->name.'/frame_%05d.jpg');
     }
 
     /**

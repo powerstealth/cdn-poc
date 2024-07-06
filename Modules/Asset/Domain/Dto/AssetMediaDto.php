@@ -10,12 +10,12 @@ class AssetMediaDto extends Data
     /**
      * Construct
      * @param string $hls
-     * @param string $key_frame
+     * @param array  $key_frame
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
         public string $hls,
-        public string $key_frame,
+        public array $key_frame,
     ){}
 
     /**
