@@ -20,12 +20,21 @@ class PlaylistRepository implements PlaylistRepositoryInterface
     public function getPlaylist(string $section):array|\Exception
     {
         try {
+            $playlistItems = [];
             //select
-            $contents=Playlist::select('*')->with(['asset'])->has('asset');
+            $contents=Playlist::select('*')
+                ->with(['asset:_id,data'])
+                ->where('section',$section);
             //sort query
             $contents->orderBy('position','asc');
-            return $contents->get()->toArray();
-        }catch (\Exception $e){
+            //get the items
+            $items=$contents->get();
+            //remove items without assets
+            foreach ($items as $item)
+                if($item->asset)
+                    $playlistItems[]=$item;
+            return $playlistItems;
+        }catch (\Exception $e){dd($e);
             return $e;
         }
     }

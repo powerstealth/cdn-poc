@@ -4,12 +4,15 @@ namespace Modules\Asset\Domain\Models;
 
 use Illuminate\Support\Facades\Storage;
 use Modules\Auth\Domain\Models\User;
+use Modules\Playlist\Domain\Models\Playlist;
 use MongoDB\Laravel\Eloquent\Model;
 use Modules\Asset\Domain\Dto\AssetMediaDto;
 use Illuminate\Notifications\Notifiable;
 use MongoDB\Laravel\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Asset extends Model
 {
@@ -68,5 +71,10 @@ class Asset extends Model
     public function owner(): HasOne
     {
         return $this->hasOne(User::class,'_id','owner_id');
+    }
+
+    public function playlist(): BelongsTo
+    {
+        return $this->belongsTo(Playlist::class,'_id', 'asset_id');
     }
 }
