@@ -232,7 +232,7 @@ class AssetRepository implements AssetRepositoryInterface
             $assetDataDto=new AssetDataDto($data["title"] ?? null,$data["description"] ?? null,$data["tags"] ?? null);
 
             $asset->data=[
-                'title'=>$assetDataDto->title !== null ? $assetDataDto->title : $assetDataDto->title ?? null,
+                'title'=>$assetDataDto->title !== null ? $assetDataDto->title : $asset->data['title'] ?? null,
                 'description'=>$assetDataDto->description !== null ? $assetDataDto->description : $asset->data['description'] ?? null,
             ];
             //set the tags
