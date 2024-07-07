@@ -1,23 +1,30 @@
 <?php
-namespace Modules\Asset\Domain\Dto;
+namespace Modules\Playlist\Domain\Dto;
 
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Modules\Asset\Domain\Dto\MapName;
+use Modules\Asset\Domain\Dto\SnakeCaseMapper;
 use Spatie\LaravelData\Data;
 
 class PlaylistStreamDto extends Data
 {
     /**
+     * Playlist DTO
      * @param string|null $title
      * @param string|null $description
-     * @param array|null  $tags
+     * @param string      $streaming_url
+     * @param string      $poster_hd
+     * @param string      $poster_sd
+     * @param string      $poster_thumbnail
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
         public ?string $title,
         public ?string $description,
         public string $streaming_url,
-        public string $poster,
+        public string $poster_hd,
+        public string $poster_sd,
+        public string $poster_thumbnail,
     ){}
 
     /**
@@ -30,7 +37,9 @@ class PlaylistStreamDto extends Data
             $request->title,
             $request->description,
             $request->streaming_url,
-            $request->poster,
+            $request->poster_hd,
+            $request->poster_sd,
+            $request->poster_thumbnail,
         );
     }
 }
