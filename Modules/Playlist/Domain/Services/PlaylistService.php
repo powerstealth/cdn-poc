@@ -2,9 +2,8 @@
 
 namespace Modules\Playlist\Domain\Services;
 
-use Illuminate\Support\Facades\Log;
-use Modules\Asset\Domain\Dto\PlaylistStreamDto;
 use Modules\Asset\Domain\Traits\S3Trait;
+use Modules\Playlist\Domain\Dto\PlaylistStreamDto;
 use Modules\Playlist\Domain\Repositories\PlaylistRepository;
 
 class PlaylistService
@@ -53,7 +52,9 @@ class PlaylistService
                 $item->asset["data"]["title"] ?? "",
                     $item->asset["data"]["description"] ?? "",
                     $item->asset["media"]["hls"] ?? "",
-                    $item->asset["media"]["key_frame"]["HD"] ?? ""
+                    $item->asset["media"]["key_frame"]["HD"] ?? "",
+                    $item->asset["media"]["key_frame"]["SD"] ?? "",
+                    $item->asset["media"]["key_frame"]["THUMBNAIL"] ?? ""
             );
         return [
             "success"=>true,
