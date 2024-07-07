@@ -40,6 +40,24 @@ class PlaylistController extends Controller
     }
 
     /**
+     * Playlist streaming
+     * @param Request $request
+     * @return JsonResponse|null
+     */
+    public function streamPlaylist(Request $request):null|JsonResponse
+    {
+        $response=$this->playlistService->streamPlaylist(
+            $request->section,
+        );
+        if($response["success"] === true){
+            $resource=$response["data"];
+        }else{
+            $resource=[];
+        }
+        return response()->json($resource,200);
+    }
+
+    /**
      * Set a playlist
      * @param SetPlaylistRequest $request
      * @param string             $section

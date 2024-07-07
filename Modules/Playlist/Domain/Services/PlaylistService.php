@@ -3,6 +3,7 @@
 namespace Modules\Playlist\Domain\Services;
 
 use Illuminate\Support\Facades\Log;
+use Modules\Asset\Domain\Dto\PlaylistStreamDto;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Playlist\Domain\Repositories\PlaylistRepository;
 
@@ -34,6 +35,30 @@ class PlaylistService
             "success"=>true,
             "message"=>"",
             "data"=>$data,
+            "error"=>"",
+            "response_status"=>200
+        ];
+    }
+
+    /**
+     * Playlist streaming
+     * @param string $section
+     * @return array
+     */
+    public function streamPlaylist(string $section):array{
+        $data=$this->playlistRepository->getPlaylist($section);
+        $playlist=[];
+        foreach ($data as $item)
+            $playlist[] = new PlaylistStreamDto(
+                $item->asset["data"]["title"] ?? "",
+                    $item->asset["data"]["description"] ?? "",
+                    $item->asset["media"]["hls"] ?? "",
+                    $item->asset["media"]["key_frame"]["HD"] ?? ""
+            );
+        return [
+            "success"=>true,
+            "message"=>"",
+            "data"=>$playlist,
             "error"=>"",
             "response_status"=>200
         ];
