@@ -17,8 +17,8 @@ class AuthIp
     public function handle(Request $request, Closure $next): Response
     {
         try{
-            $blockIps = ['127.0.0.1'];
-            if (!in_array($request->ip(), $blockIps)) {
+            $blockIps = env("IP_WHITELIST");
+            if (!in_array($request->ip(), explode(",",$blockIps))) {
                 throw new \Exception("Unauthorized");
             }else
                 return $next($request);
