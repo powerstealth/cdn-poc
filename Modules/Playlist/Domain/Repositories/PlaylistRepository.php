@@ -48,8 +48,8 @@ class PlaylistRepository implements PlaylistRepositoryInterface
     public function setPlaylist(array $items, string $section):bool|\Exception
     {
         try {
-            //purge
-            Playlist::truncate();
+            //purge section items
+            Playlist::where('section',$section)->delete();
             //populate
             foreach ($items as $item) {
                 $contentDto=new PlaylistItemDataDto(new \MongoDB\BSON\ObjectId($item["id"]),$section,(int)$item["position"]);
