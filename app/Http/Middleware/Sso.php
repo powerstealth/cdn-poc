@@ -9,6 +9,7 @@ use MiladRahimi\Jwt\Validator\Rules\NotNull;
 use Symfony\Component\HttpFoundation\Response;
 use Modules\Auth\Presentation\Api\Resources\AuthResource;
 use MiladRahimi\Jwt\Parser;
+use MiladRahimi\Jwt\Generator;
 use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
 use MiladRahimi\Jwt\Validator\Rules\NewerThan;
 use MiladRahimi\Jwt\Validator\DefaultValidator;
@@ -52,6 +53,7 @@ class Sso
     private function _validateJwtToken(string $jwt):bool|\Exception {
         $key = new HmacKey(env("JWT_SIGNING_KEY"));
         $signer = new HS256($key);
+
         $validator = new DefaultValidator();
         //validate the issuer
         $validator->addRequiredRule('iss', new NotEmpty());
@@ -66,6 +68,7 @@ class Sso
         //validate email
         $validator->addRequiredRule('email', new NotEmpty());
         $validator->addRequiredRule('email', new NotNull());
+
         try {
             $parser = new Parser($signer,$validator);
             $parser->parse($jwt);

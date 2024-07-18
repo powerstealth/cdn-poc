@@ -35,10 +35,14 @@ class AuthService
         try {
             //get the claim
             $email=self::getClaims($jwtToken,['email','sub']);
+            $issuer=self::getClaims($jwtToken,['iss']);
             if(isset($email['email'])){
                 //validate the email
                 $emailIsValid=self::validateEmail($email['email']);
                 if(!$emailIsValid) throw new \Exception("The email is invalid");
+                //validate the issuer
+                if(env('JWT_ISSUER') != $issuer['iss'])
+                    throw new \Exception("The issuer is invalid");
                 $user=$this->authRepository->getUserByEmail($email['email']);
                 if($user===null){
                     //create a new user
@@ -57,7 +61,7 @@ class AuthService
                     "response_status"=>200
                 ];
             }else{
-                throw new \Exception("The email claim doesn't exists");
+                throw new \Exception("The email doesn't exists");
             }
         }catch (\Exception $e){
             return [
