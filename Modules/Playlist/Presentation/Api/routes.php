@@ -8,7 +8,9 @@ use \Modules\Playlist\Presentation\Api\Controllers\PlaylistController;
 
 Route::prefix('1.0')->group(function () {
     //Home content list
-    Route::get('/playlist/{section}',[PlaylistController::class,'getPlaylist'])->middleware(AuthSanctum::class);
+    Route::get('/playlist/{section}',[PlaylistController::class,'getPlaylist'])
+        ->middleware(AuthSanctum::class,'role:admin');
+    Route::post('/playlist/{section}',[PlaylistController::class,'setPlaylist'])
+        ->middleware(AuthSanctum::class,'role:admin');
     Route::get('/playlist/{section}/stream',[PlaylistController::class,'streamPlaylist'])->middleware(AuthIp::class);
-    Route::post('/playlist/{section}',[PlaylistController::class,'setPlaylist'])->middleware(AuthSanctum::class);
 });

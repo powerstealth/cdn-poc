@@ -21,11 +21,13 @@ Route::prefix('1.0')->group(function () {
     //Delete an asset (soft)
     Route::delete('/asset/{id}',[AssetController::class,'softDeleteAsset'])->middleware(AuthSanctum::class);
     //Delete an asset (hard)
-    Route::delete('/asset/{id}/hard',[AssetController::class,'hardDeleteAsset'])->middleware(AuthSanctum::class);
+    Route::delete('/asset/{id}/hard',[AssetController::class,'hardDeleteAsset'])
+        ->middleware(AuthSanctum::class,'role:admin');
     //Stream an asset
     Route::get('/asset/{id}/stream/{json?}',[AssetController::class,'streamAsset']);
     //Download an original asset
     Route::get('/asset/{id}/download',[AssetController::class,'downloadOriginalAsset'])->middleware(AuthSanctum::class);
     //Show asset's categories list
-    Route::get('/tag-groups',[AssetController::class,'getTagGroups'])->middleware(AuthSanctum::class);
+    Route::get('/tag-groups',[AssetController::class,'getTagGroups'])
+        ->middleware(AuthSanctum::class,'role:admin');
 });
