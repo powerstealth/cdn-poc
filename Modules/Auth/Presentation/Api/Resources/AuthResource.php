@@ -13,14 +13,14 @@ class AuthResource extends Data
      * @param bool       $success
      * @param string     $message
      * @param array|null $data
-     * @param string     $error
+     * @param string|null     $error
      * @param int        $responseStatus
      */
     public function __construct(
         public bool $success,
         public string $message,
         public array|null $data,
-        public string $error,
+        public string|null $error,
         #[MapOutputName('response_status'),MapInputName('response_status')]
         public int $responseStatus=200
     ){}

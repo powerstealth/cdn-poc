@@ -21,7 +21,7 @@ class AuthRepository implements AuthRepositoryInterface
     public function getUserById(string $id): User|null{
         try {
             return User::find(new \MongoDB\BSON\ObjectId($id));
-        }catch (\Exception $e){dd($e);
+        }catch (\Exception $e){
             return null;
         }
     }
@@ -48,6 +48,53 @@ class AuthRepository implements AuthRepositoryInterface
             'magento_user_id' => $magentoUserId,
         ]);
         return $user->createToken('api_token')->plainTextToken;
+    }
+
+    /**
+     * List users
+     * @param int         $page
+     * @param int         $limit
+     * @param string      $sortField
+     * @param string      $sortOrder
+     * @param array       $filters
+     * @param string|null $search
+     * @param bool        $setPagination
+     * @return array|\Exception
+     */
+    public function listUsers(int $page, int $limit, string $sortField, string $sortOrder, array $filters, ?string $search, bool $setPagination=true):array|\Exception
+    {
+        try {
+            //select
+            $users=User::select('*');
+            //add filters
+            if(count($filters)>0){
+                foreach ($filters as $filter){
+                    if($filter[1]=="in"){
+                        $users=$users->whereIn($filter[0],(is_array($filter[2]) ? $filter[2] : [$filter[2]]));
+                    }else{
+                        $users=$users->where($filter[0],$filter[1],$filter[2]);
+                    }
+                }
+            }
+            //search
+            if($search!==null){
+                $users=$users->where(function ($query) use ($search) {
+                    //email
+                    $query->orWhere('email', 'like', '%' . $search . '%');
+                });
+            }
+            //sort query
+            $users->orderBy($sortField,$sortOrder);
+            //set pagination
+            if($setPagination){
+                $users=$users->paginate($limit);
+                return $users->toArray();
+            }else{
+                return $users->skip($limit*($page-1))->take($limit)->get()->toArray();
+            }
+        }catch (\Exception $e){
+            return $e;
+        }
     }
 
 }
