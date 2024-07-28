@@ -5,7 +5,6 @@ namespace Modules\Auth\Infrastructure\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Modules\Auth\Domain\Models\User;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 
 class AuthPermissionsSeeder extends Seeder
 {
