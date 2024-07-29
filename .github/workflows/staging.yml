@@ -18,27 +18,16 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Prepare and upload files
+        run: |
+          ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} << 'EOF'
+            sudo rm -Rf /var/www/html/clyup-vms/
+            sudo mkdir -p /var/www/html/clyup-vms
+            sudo chown -R rocky:rocky /var/www/html/clyup-vms
+          EOF
+          scp -o StrictHostKeyChecking=no -r . rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
 
-      - name: Delete staging directory on the server
-        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo rm -Rf /var/www/html/clyup-vms/'
-
-      - name: Create staging directory on the server
-        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo mkdir -p /var/www/html/clyup-vms'
-
-      - name: Change ownership of target directory to rocky user
-        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo chown -R rocky:rocky /var/www/html/clyup-vms'
-
-      - name: Upload the files
-        run: scp -o StrictHostKeyChecking=no -r ./* rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
-
-      - name: Upload the .env
-        run: scp -o StrictHostKeyChecking=no .env rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
-
-      - name: Set up environment
+      - name: Set up environment and run commands
         run: |
           ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} << 'EOF'
             cd /var/www/html/clyup-vms

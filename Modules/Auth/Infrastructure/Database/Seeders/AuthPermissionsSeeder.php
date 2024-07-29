@@ -17,7 +17,6 @@ class AuthPermissionsSeeder extends Seeder
             $user=User::create([
                 'email' => 'clyuptv@clyup.com',
                 'magento_user_id' => "admin",
-
             ]);
             $role=Role::create(['name' => 'admin']);
             $user->assignRole($role);
