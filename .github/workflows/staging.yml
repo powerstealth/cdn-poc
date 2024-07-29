@@ -56,13 +56,5 @@ jobs:
             sed -i 's|^AWS_BUCKET_MEDIA=.*|AWS_BUCKET_MEDIA=clyup-staging-media|' .env
             sed -i 's|^AWS_MEDIA_URL=.*|AWS_MEDIA_URL=https://clyup-staging-media.s3.gra.io.cloud.ovh.net/|' .env
             yes | sudo /usr/local/bin/composer update
-            sudo php artisan migrate
-            sudo php artisan migrate --path=Modules/Playlist/Infrastructure/Database/Migrations/2024_06_03_001_playlist.php
-            sudo php artisan migrate --path=Modules/Asset/Infrastructure/Database/Migrations/2024_05_01_001_assets.php
-            sudo php artisan db:seed --class=Modules\\Auth\\Infrastructure\\Database\\Seeders\\AuthPermissionsSeeder
-            sudo php artisan s3:cors clyup-staging-ingest
-            sudo php artisan s3:cors clyup-staging-media
-            sudo chown -R apache: /var/www/html/
-            sudo chmod 755 /var/www/html/ -Rf
-            sudo php artisan cache:clear
+
           EOF
