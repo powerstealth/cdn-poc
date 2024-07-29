@@ -32,8 +32,11 @@ jobs:
       - name: Change ownership of target directory to rocky user
         run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo chown -R rocky:rocky /var/www/html/clyup-vms'
 
-      - name: Upload dist folder to server
+      - name: Upload the files
         run: scp -o StrictHostKeyChecking=no -r ./* rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
+
+      - name: Upload the .env
+        run: scp -o StrictHostKeyChecking=no .env rocky@${{ secrets.STAGING_IP }}:/var/www/html/clyup-vms
 
       - name: Set up environment
         run: |
