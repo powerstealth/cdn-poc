@@ -1,0 +1,34 @@
+name: Staging deployment
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Change ownership of target directory to rocky user
+        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo chown -R rocky:rocky /var/www/html/clyup-fe'
+
+      - name: Delete staging directory on the server
+        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo rm -Rf /var/www/html/clyup-vms/'
+
+      - name: Create staging directory on the server
+        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo mkdir -p /var/www/html/clyup-vms'
+
+      - name: Upload dist folder to server
+        run: scp -o StrictHostKeyChecking=no -r .* rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
+
+      - name: Change ownership of target directory to apache user
+        run: ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} 'sudo chown -R apache:apache /var/www/html/clyup-vms'
