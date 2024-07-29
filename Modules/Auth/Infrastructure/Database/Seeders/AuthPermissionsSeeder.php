@@ -13,12 +13,17 @@ class AuthPermissionsSeeder extends Seeder
      */
     public function run()
     {
-        $user=User::create([
-            'email' => 'clyuptv@clyup.com',
-            'magento_user_id' => "admin",
+        try {
+            $user=User::create([
+                'email' => 'clyuptv@clyup.com',
+                'magento_user_id' => "admin",
 
-        ]);
-        $role=Role::create(['name' => 'admin']);
-        $user->assignRole($role);
+            ]);
+            $role=Role::create(['name' => 'admin']);
+            $user->assignRole($role);
+        }catch (\Exception $e) {
+            echo "Skip seeding";
+        }
+
     }
 }
