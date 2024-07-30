@@ -27,33 +27,3 @@ jobs:
           EOF
           scp -o StrictHostKeyChecking=no -r ./* rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
           scp -o StrictHostKeyChecking=no -r ./.env rocky@${{ vars.STAGING_IP }}:/var/www/html/clyup-vms
-
-      - name: Set up environment and run commands
-        run: |
-          ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} << 'EOF'
-            cd /var/www/html/clyup-vms
-            sed -i 's/^APP_ENV=.*/APP_ENV=staging/' .env
-            sed -i 's|^APP_URL=.*|APP_URL=http://${{ vars.STAGING_IP }}|' .env
-            sed -i 's|^IP_WHITELIST=.*|IP_WHITELIST=\"${{ vars.WHITELIST_IP }}\"|' .env
-            sed -i 's|^WORKER_ID=.*|WORKER_ID=WORKER_STAGING|' .env
-            sed -i 's|^DB_USERNAME=.*|DB_USERNAME=root|' .env
-            sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=LYj8xtJgwu9i0grxXoGVMO|' .env
-            sed -i 's|^AWS_ACCESS_KEY_ID=.*|AWS_ACCESS_KEY_ID=d87e3fd53f874c4f95c5f60db6c71d85|' .env
-            sed -i 's|^AWS_SECRET_ACCESS_KEY=.*|AWS_SECRET_ACCESS_KEY=878a12e9786b4a1bac67dc8b8132f13c|' .env
-            sed -i 's|^AWS_DEFAULT_REGION=.*|AWS_DEFAULT_REGION=gra|' .env
-            sed -i 's|^AWS_ENDPOINT=.*|AWS_ENDPOINT=https://s3.gra.io.cloud.ovh.net/|' .env
-            sed -i 's|^AWS_INGEST_URL=.*|AWS_INGEST_URL=https://clyup-staging-ingest.s3.gra.io.cloud.ovh.net/|' .env
-            sed -i 's|^AWS_BUCKET_INGEST=.*|AWS_BUCKET_INGEST=clyup-staging-ingest|' .env
-            sed -i 's|^AWS_BUCKET_MEDIA=.*|AWS_BUCKET_MEDIA=clyup-staging-media|' .env
-            sed -i 's|^AWS_MEDIA_URL=.*|AWS_MEDIA_URL=https://clyup-staging-media.s3.gra.io.cloud.ovh.net/|' .env
-            yes | sudo /usr/local/bin/composer update
-            sudo php artisan migrate
-            sudo php artisan migrate --path=Modules/Playlist/Infrastructure/Database/Migrations/2024_06_03_001_playlist.php
-            sudo php artisan migrate --path=Modules/Asset/Infrastructure/Database/Migrations/2024_05_01_001_assets.php
-            sudo php artisan db:seed --class=Modules\\Auth\\Infrastructure\\Database\\Seeders\\AuthPermissionsSeeder
-            sudo php artisan s3:cors clyup-staging-ingest
-            sudo php artisan s3:cors clyup-staging-media
-            sudo chown -R apache: /var/www/html/
-            sudo chmod 755 /var/www/html/ -Rf
-            sudo php artisan cache:clear
-          EOF
