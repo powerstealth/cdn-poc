@@ -33,7 +33,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no rocky@${{ vars.STAGING_IP }} << 'EOF'
             cd /var/www/html/clyup-vms
             sed -i 's/^APP_ENV=.*/APP_ENV=staging/' .env
-            sed -i 's|^APP_URL=.*|APP_URL=http://stage.clyuptv.com|' .env
+            sed -i 's|^APP_URL=.*|APP_URL=http://${{ vars.STAGING_IP }}|' .env
+            sed -i 's|^IP_WHITELIST=.*|IP_WHITELIST="${{ vars.WHITELIST_IP }}"|' .env
             sed -i 's|^WORKER_ID=.*|WORKER_ID=WORKER_STAGING|' .env
             sed -i 's|^DB_USERNAME=.*|DB_USERNAME=root|' .env
             sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=LYj8xtJgwu9i0grxXoGVMO|' .env
