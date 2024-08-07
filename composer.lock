@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a4d6391bf777a000254c070900f204d1",
+    "content-hash": "2b5f973ca943ce9906bf4c1ed43aab76",
     "packages": [
         {
             "name": "amphp/amp",
@@ -2319,16 +2319,16 @@
         },
         {
             "name": "intervention/image",
-            "version": "3.6.4",
+            "version": "3.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Intervention/image.git",
-                "reference": "193324ec88bc5ad4039e57ce9b926ae28dfde813"
+                "reference": "5451ff9f909c2fc836722e5ed6831b9f9a6db68c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Intervention/image/zipball/193324ec88bc5ad4039e57ce9b926ae28dfde813",
-                "reference": "193324ec88bc5ad4039e57ce9b926ae28dfde813",
+                "url": "https://api.github.com/repos/Intervention/image/zipball/5451ff9f909c2fc836722e5ed6831b9f9a6db68c",
+                "reference": "5451ff9f909c2fc836722e5ed6831b9f9a6db68c",
                 "shasum": ""
             },
             "require": {
@@ -2375,7 +2375,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Intervention/image/issues",
-                "source": "https://github.com/Intervention/image/tree/3.6.4"
+                "source": "https://github.com/Intervention/image/tree/3.7.2"
             },
             "funding": [
                 {
@@ -2387,25 +2387,25 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-05-08T13:53:15+00:00"
+            "time": "2024-07-05T13:35:01+00:00"
         },
         {
             "name": "intervention/image-laravel",
-            "version": "1.2.0",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Intervention/image-laravel.git",
-                "reference": "d30b62fea3c49896dbf26ea7799e7d718e779310"
+                "reference": "24738a017d42a6fa8d9adabdbd69a2c19c5b0d30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Intervention/image-laravel/zipball/d30b62fea3c49896dbf26ea7799e7d718e779310",
-                "reference": "d30b62fea3c49896dbf26ea7799e7d718e779310",
+                "url": "https://api.github.com/repos/Intervention/image-laravel/zipball/24738a017d42a6fa8d9adabdbd69a2c19c5b0d30",
+                "reference": "24738a017d42a6fa8d9adabdbd69a2c19c5b0d30",
                 "shasum": ""
             },
             "require": {
                 "illuminate/support": "^8|^9|^10|^11",
-                "intervention/image": "^3",
+                "intervention/image": "^3.7",
                 "php": "^8.1"
             },
             "require-dev": {
@@ -2452,7 +2452,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Intervention/image-laravel/issues",
-                "source": "https://github.com/Intervention/image-laravel/tree/1.2.0"
+                "source": "https://github.com/Intervention/image-laravel/tree/1.3.0"
             },
             "funding": [
                 {
@@ -2464,7 +2464,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-03-03T09:14:35+00:00"
+            "time": "2024-06-15T08:20:20+00:00"
         },
         {
             "name": "kelunik/certificate",
@@ -3355,6 +3355,52 @@
             "time": "2024-05-06T20:05:52+00:00"
         },
         {
+            "name": "league/flysystem-path-prefixing",
+            "version": "3.28.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/flysystem-path-prefixing.git",
+                "reference": "fe187456d824b288672b89d1b32b2d78975bb934"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/flysystem-path-prefixing/zipball/fe187456d824b288672b89d1b32b2d78975bb934",
+                "reference": "fe187456d824b288672b89d1b32b2d78975bb934",
+                "shasum": ""
+            },
+            "require": {
+                "league/flysystem": "^3.10.0",
+                "php": "^8.0.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "League\\Flysystem\\PathPrefixing\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Frank de Jonge",
+                    "email": "info@frankdejonge.nl"
+                }
+            ],
+            "description": "Path prefixing filesystem adapter for Flysystem.",
+            "keywords": [
+                "Flysystem",
+                "filesystem",
+                "prefix",
+                "prefixing"
+            ],
+            "support": {
+                "source": "https://github.com/thephpleague/flysystem-path-prefixing/tree/3.28.0"
+            },
+            "time": "2024-05-06T20:05:52+00:00"
+        },
+        {
             "name": "league/mime-type-detection",
             "version": "1.15.0",
             "source": {
@@ -3583,6 +3629,87 @@
                 }
             ],
             "time": "2024-03-23T07:42:40+00:00"
+        },
+        {
+            "name": "maennchen/zipstream-php",
+            "version": "3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maennchen/ZipStream-PHP.git",
+                "reference": "b8174494eda667f7d13876b4a7bfef0f62a7c0d1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maennchen/ZipStream-PHP/zipball/b8174494eda667f7d13876b4a7bfef0f62a7c0d1",
+                "reference": "b8174494eda667f7d13876b4a7bfef0f62a7c0d1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "ext-zlib": "*",
+                "php-64bit": "^8.1"
+            },
+            "require-dev": {
+                "ext-zip": "*",
+                "friendsofphp/php-cs-fixer": "^3.16",
+                "guzzlehttp/guzzle": "^7.5",
+                "mikey179/vfsstream": "^1.6",
+                "php-coveralls/php-coveralls": "^2.5",
+                "phpunit/phpunit": "^10.0",
+                "vimeo/psalm": "^5.0"
+            },
+            "suggest": {
+                "guzzlehttp/psr7": "^2.4",
+                "psr/http-message": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ZipStream\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Paul Duncan",
+                    "email": "pabs@pablotron.org"
+                },
+                {
+                    "name": "Jonatan Männchen",
+                    "email": "jonatan@maennchen.ch"
+                },
+                {
+                    "name": "Jesse Donat",
+                    "email": "donatj@gmail.com"
+                },
+                {
+                    "name": "András Kolesár",
+                    "email": "kolesar@kolesar.hu"
+                }
+            ],
+            "description": "ZipStream is a library for dynamically streaming dynamic zip files from PHP without writing to the disk at all on the server.",
+            "keywords": [
+                "stream",
+                "zip"
+            ],
+            "support": {
+                "issues": "https://github.com/maennchen/ZipStream-PHP/issues",
+                "source": "https://github.com/maennchen/ZipStream-PHP/tree/3.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/maennchen",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/zipstream",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2023-06-21T14:59:35+00:00"
         },
         {
             "name": "miladrahimi/php-jwt",
@@ -4177,20 +4304,20 @@
         },
         {
             "name": "nette/utils",
-            "version": "v4.0.4",
+            "version": "v4.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/utils.git",
-                "reference": "d3ad0aa3b9f934602cb3e3902ebccf10be34d218"
+                "reference": "6d70929398e4414cc52055242990cd609f54a29b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/utils/zipball/d3ad0aa3b9f934602cb3e3902ebccf10be34d218",
-                "reference": "d3ad0aa3b9f934602cb3e3902ebccf10be34d218",
+                "url": "https://api.github.com/repos/nette/utils/zipball/6d70929398e4414cc52055242990cd609f54a29b",
+                "reference": "6d70929398e4414cc52055242990cd609f54a29b",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.0 <8.4"
+                "php": "8.0 - 8.4"
             },
             "conflict": {
                 "nette/finder": "<3",
@@ -4257,9 +4384,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nette/utils/issues",
-                "source": "https://github.com/nette/utils/tree/v4.0.4"
+                "source": "https://github.com/nette/utils/tree/v4.0.5"
             },
-            "time": "2024-01-17T16:50:36+00:00"
+            "time": "2024-08-07T12:47:39+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -6010,6 +6137,73 @@
                 }
             ],
             "time": "2023-12-25T11:46:58+00:00"
+        },
+        {
+            "name": "stechstudio/laravel-zipstream",
+            "version": "5.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stechstudio/laravel-zipstream.git",
+                "reference": "a9a536b9edc4a05d0c5e34451d323086648bb194"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stechstudio/laravel-zipstream/zipball/a9a536b9edc4a05d0c5e34451d323086648bb194",
+                "reference": "a9a536b9edc4a05d0c5e34451d323086648bb194",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0",
+                "guzzlehttp/psr7": "^2.6",
+                "illuminate/support": "^10.0|^11.0",
+                "league/flysystem-path-prefixing": "^3.28",
+                "maennchen/zipstream-php": "^v3.0",
+                "php": "^8.1",
+                "psr/http-message": "^2.0",
+                "spatie/laravel-package-tools": "^1.16"
+            },
+            "require-dev": {
+                "league/flysystem-aws-s3-v3": "^3.28",
+                "orchestra/testbench": "^8.0|^9.0",
+                "phpunit/phpunit": "^9.0|^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "STS\\ZipStream\\ZipStreamServiceProvider"
+                    ],
+                    "aliases": {
+                        "Zip": "STS\\ZipStream\\Facades\\Zip"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "STS\\ZipStream\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Joseph Szobody",
+                    "email": "joseph@stechstudio.com"
+                }
+            ],
+            "description": "A fast and simple streaming zip file downloader for Laravel.",
+            "homepage": "https://github.com/stechstudio/laravel-zipstream",
+            "keywords": [
+                "laravel-zipstream",
+                "stechstudio"
+            ],
+            "support": {
+                "issues": "https://github.com/stechstudio/laravel-zipstream/issues",
+                "source": "https://github.com/stechstudio/laravel-zipstream/tree/5.0.2"
+            },
+            "time": "2024-07-13T01:31:42+00:00"
         },
         {
             "name": "symfony/cache",

@@ -186,6 +186,19 @@ class AssetController extends Controller
     }
 
     /**
+     * Download the asset's frames
+     * @param AssetInfoRequest $request
+     * @return JsonResponse
+     */
+    public function downloadAssetFrames(AssetInfoRequest $request):JsonResponse
+    {
+        //check availability
+        $response=$this->assetService->downloadAssetFrames($request->data()->id);
+        $resource=AssetResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
      * Get the tag groups
      * @param Request $request
      * @return JsonResponse|null
