@@ -6,4 +6,5 @@ return [
     ProtoneMedia\LaravelFFMpeg\Support\ServiceProvider::class,
     Spatie\Permission\PermissionServiceProvider::class,
     Mehrdadakbari\Mongodb\Permissions\PermissionServiceProvider::class,
+    Intervention\Image\Laravel\ServiceProvider::class
 ];

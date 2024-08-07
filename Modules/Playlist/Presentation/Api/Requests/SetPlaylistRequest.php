@@ -17,9 +17,16 @@ class SetPlaylistRequest extends FormRequest
     public function rules()
     {
         return [
-            'items' => 'required|array',
-            'items.*.id' => 'required|exists:assets,_id',
-            'items.*.position' => 'required|numeric|min:1',
+            'items' => 'nullable|array',
+            'items.*.id' => [
+                'required_with:items',
+                'exists:assets,_id'
+            ],
+            'items.*.position' => [
+                'required_with:items',
+                'numeric',
+                'min:1'
+            ],
         ];
     }
 

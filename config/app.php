@@ -125,6 +125,7 @@ return [
     ],
 
     'aliases' => Facade::defaultAliases()->merge([
-        'FFMpeg' => ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::class
+        'FFMpeg' => ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::class,
+        'Image' => Intervention\Image\Laravel\Facades\Image::class
     ])->toArray(),
 ];

@@ -47,6 +47,8 @@ class Asset extends Model
 
     public function getMediaAttribute():array
     {
+        //random signature
+        $signature=md5(microtime().rand(10000,99999));
         //check the frames availability
         if(Storage::disk('s3_media')->exists($this->_id.'/frames/HD/frame_custom.jpg'))
             $frame='frame_custom.jpg';
@@ -54,6 +56,7 @@ class Asset extends Model
             $frame='frame_00003.jpg';
         else
             $frame='frame_00001.jpg';
+        $frame.="?".$signature;
         //set the frame's qualities
         $keyFrames=[
             'HD' => env("AWS_MEDIA_URL").$this->_id."/frames/HD/".$frame,
