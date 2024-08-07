@@ -5,11 +5,14 @@ namespace Modules\Asset\Domain\Services;
 use Carbon\Carbon;
 use Aws\S3\S3Client;
 use Illuminate\Support\Str;
+use STS\ZipStream\Facades\Zip;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Dto\AssetDataDto;
 use Modules\Asset\Domain\Dto\PaginationDto;
+use Intervention\Image\Laravel\Facades\Image;
 use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
+use Modules\Asset\Domain\Enums\FrameQualitiesEnum;
 use Modules\Asset\Domain\Enums\TagGroupsEnum;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Modules\Asset\Domain\Jobs\ProcessAsset;
@@ -395,30 +398,31 @@ class AssetService
      */
     public function uploadPosterToAsset(string $id, \Illuminate\Http\UploadedFile $poster):array{
         $frameTitle='frame_custom.jpg';
-        if ($poster->getClientOriginalExtension() !== 'jpg' && $poster->getClientOriginalExtension() !== 'jpeg') {
-            $image = Image::make($poster->getRealPath());
-            $jpgImage = $image->encode('jpg');
-            $ret = $jpgImage->storeAs($id.'/frames/',$frameTitle,'s3_media');
-        }else
-            $ret = $poster->storeAs($id.'/frames/',$frameTitle,'s3_media');
-        //return
-        if(!$ret instanceof \Exception){
-            return [
-                "success"=>true,
-                "message"=>"The poster has been uploaded successfully",
-                "data"=>null,
-                "error"=>null,
-                "response_status"=>200
-            ];
-        }else{
-            return [
-                "success"=>false,
-                "message"=>"An error was occurred",
-                "data"=>null,
-                "error"=>$data->getMessage(),
-                "response_status"=>400
-            ];
+        $img=Image::read($poster->getRealPath());
+        //store the frame in several qualities
+        foreach (FrameQualitiesEnum::getAllItemsAsArray() as $name=>$quality){
+            $ret=Storage::disk('s3_media')
+                ->put(
+                    $id.'/frames/'.FrameQualitiesEnum::from($quality)->name.'/'.$frameTitle,
+                    (string)$img->contain($quality,((int)$quality/1.777),'000000')->toJpeg()
+                );
+            if($ret instanceof \Exception)
+                return [
+                    "success"=>false,
+                    "message"=>"An error was occurred",
+                    "data"=>null,
+                    "error"=>$ret->getMessage(),
+                    "response_status"=>400
+                ];
         }
+        //return true
+        return [
+            "success"=>true,
+            "message"=>"The poster has been uploaded successfully",
+            "data"=>null,
+            "error"=>null,
+            "response_status"=>200
+        ];
     }
 
     /**
@@ -532,6 +536,55 @@ class AssetService
             ];
         }
         return $requestData;
+    }
+
+    /**
+     * Download asset's frame
+     * @param string $assetId
+     * @return array
+     */
+    public function downloadAssetFrames(string $assetId):array
+    {
+        //check the asset
+        $asset=$this->assetRepository->getAsset($assetId);
+        if($asset instanceof \Exception){
+            return [
+                "success"=>false,
+                "message"=>"An error was occurred",
+                "data"=>null,
+                "error"=>$asset->getMessage(),
+                "response_status"=>400
+            ];
+        }else{
+            try {
+                $s3Frames = Storage::disk('s3_media')->files($asset->_id."/frames/HD");
+                if(count($s3Frames)>0){
+                    $zip=Zip::create($asset->_id.'_hd_frames.zip');
+                    foreach ($s3Frames as $frame){
+                        $zip->add(Storage::disk('s3_media')->temporaryUrl($frame, now()->addSeconds(300)), $frame);
+                    }
+
+                    $zip->saveToDisk("s3_media",$asset->_id."/frames");
+                }
+            }catch (\Exception $e){
+                return [
+                    "success"=>false,
+                    "message"=>"",
+                    "data"=>null,
+                    "error"=>"Can't create the zip file",
+                    "response_status"=>400
+                ];
+            }
+            return [
+                "success"=>true,
+                "message"=>"",
+                "data"=>[
+                    "private_url" => Storage::disk('s3_media')->temporaryUrl($asset->_id."/frames/".$asset->_id.'_hd_frames.zip', now()->addMinutes(15))
+                ],
+                "error"=>null,
+                "response_status"=>200
+            ];
+        }
     }
 
     /**

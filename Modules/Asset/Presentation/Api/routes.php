@@ -26,7 +26,11 @@ Route::prefix('1.0')->group(function () {
     //Stream an asset
     Route::get('/asset/{id}/stream/{json?}',[AssetController::class,'streamAsset']);
     //Download an original asset
-    Route::get('/asset/{id}/download',[AssetController::class,'downloadOriginalAsset'])->middleware(AuthSanctum::class);
+    Route::get('/asset/{id}/download',[AssetController::class,'downloadOriginalAsset'])
+        ->middleware(AuthSanctum::class);
+    //Download the frames
+    Route::get('/asset/{id}/download/frames',[AssetController::class,'downloadAssetFrames'])
+        ->middleware(AuthSanctum::class);
     //Show asset's categories list
     Route::get('/tag-groups',[AssetController::class,'getTagGroups'])
         ->middleware(AuthSanctum::class,'role:admin');
