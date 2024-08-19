@@ -2,7 +2,9 @@
 
 namespace Modules\Playlist\Domain\Services;
 
+use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Traits\S3Trait;
+use Modules\Auth\Domain\Models\User;
 use Modules\Playlist\Domain\Dto\PlaylistStreamDto;
 use Modules\Playlist\Domain\Repositories\PlaylistRepository;
 
@@ -25,11 +27,12 @@ class PlaylistService
 
     /**
      * Get playlist content list
-     * @param string $section
+     * @param string      $section
+     * @param string|null $user
      * @return array
      */
-    public function getPlaylistContents(string $section):array{
-        $data=$this->playlistRepository->getPlaylist($section);
+    public function getPlaylistContents(string $section, ?string $user=null):array{
+        $data=$this->playlistRepository->getPlaylist($section, $user);
         return [
             "success"=>true,
             "message"=>"",
@@ -40,12 +43,42 @@ class PlaylistService
     }
 
     /**
-     * Playlist streaming
+     * Set the playlist contents
+     * @param array  $items
      * @param string $section
+     * @param string $user
      * @return array
      */
-    public function streamPlaylist(string $section):array{
-        $data=$this->playlistRepository->getPlaylist($section);
+    public function setPlaylistContents(array $items, string $section, string $user):array{
+        if($section == 'virtual-show'){
+            $check=$this->_checkPrivatePlaylist($items, $user);
+            if(!$check)
+                return [
+                    "success"=>false,
+                    "message"=>"",
+                    "data"=>[],
+                    "error"=>"The assets are wrong",
+                    "response_status"=>400
+                ];
+        }
+        $this->playlistRepository->setPlaylist($items, $section, $user);
+        return [
+            "success"=>true,
+            "message"=>"",
+            "data"=>[],
+            "error"=>"",
+            "response_status"=>200
+        ];
+    }
+
+    /**
+     * Playlist streaming
+     * @param string      $section
+     * @param string|null $userId
+     * @return array
+     */
+    public function streamPlaylist(string $section, ?string $userId = null):array{
+        $data=$this->playlistRepository->getPlaylist($section,$userId);
         $playlist=[];
         foreach ($data as $item)
             $playlist[] = new PlaylistStreamDto(
@@ -66,20 +99,19 @@ class PlaylistService
     }
 
     /**
-     * Set the playlist contents
-     * @param array  $items
-     * @param string $section
-     * @return array
+     * Check playlist items
+     * @param array $items
+     * @return bool
      */
-    public function setPlaylistContents(array $items, string $section):array{
-        $this->playlistRepository->setPlaylist($items, $section);
-        return [
-            "success"=>true,
-            "message"=>"",
-            "data"=>[],
-            "error"=>"",
-            "response_status"=>200
-        ];
+    private function _checkPrivatePlaylist(array $items, string $user):bool{
+        foreach ($items as $item){
+            if(
+                !Asset::where('_id',new \MongoDB\BSON\ObjectId($item["id"]))
+                    ->where('owner_id',new \MongoDB\BSON\ObjectId($user))
+                    ->exists()
+            )
+                return false;
+        }
+        return true;
     }
-
 }

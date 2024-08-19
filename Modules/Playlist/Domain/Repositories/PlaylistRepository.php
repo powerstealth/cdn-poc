@@ -1,6 +1,7 @@
 <?php
 namespace Modules\Playlist\Domain\Repositories;
 
+use Modules\Auth\Domain\Models\User;
 use Modules\Playlist\Domain\Contracts\PlaylistRepositoryInterface;
 use Modules\Playlist\Domain\Dto\PlaylistItemDataDto;
 use Modules\Playlist\Domain\Models\Playlist;
@@ -14,10 +15,11 @@ class PlaylistRepository implements PlaylistRepositoryInterface
 
     /**
      * Get the playlist
-     * @param string $section
+     * @param string      $section
+     * @param string|null $user
      * @return array|\Exception
      */
-    public function getPlaylist(string $section):array|\Exception
+    public function getPlaylist(string $section, ?string $user=null):array|\Exception
     {
         try {
             $playlistItems = [];
@@ -25,6 +27,9 @@ class PlaylistRepository implements PlaylistRepositoryInterface
             $contents=Playlist::select('*')
                 ->with(['asset:_id,data'])
                 ->where('section',$section);
+            //filter by user
+            if($user!==null)
+                $contents->where('created_by',new \MongoDB\BSON\ObjectId($user));
             //sort query
             $contents->orderBy('position','asc');
             //get the items
@@ -34,29 +39,30 @@ class PlaylistRepository implements PlaylistRepositoryInterface
                 if($item->asset)
                     $playlistItems[]=$item;
             return $playlistItems;
-        }catch (\Exception $e){dd($e);
+        }catch (\Exception $e){
             return $e;
         }
     }
 
     /**
-     * Set a playlist
-     * @param array  $items
-     * @param string $section
+     * Set a Virtual Show playlist
+     * @param array       $items
+     * @param string      $section
+     * @param string      $user
      * @return bool|\Exception
      */
-    public function setPlaylist(array $items, string $section):bool|\Exception
+    public function setPlaylist(array $items, string $section, string $user):bool|\Exception
     {
         try {
             //purge section items
-            Playlist::where('section',$section)->delete();
+            Playlist::where('section',$section)->where('created_by',new \MongoDB\BSON\ObjectId($user))->forceDelete();
             //populate
             foreach ($items as $item) {
-                $contentDto=new PlaylistItemDataDto(new \MongoDB\BSON\ObjectId($item["id"]),$section,(int)$item["position"]);
+                $contentDto=new PlaylistItemDataDto(new \MongoDB\BSON\ObjectId($item["id"]),$section,(int)$item["position"],new \MongoDB\BSON\ObjectId($user));
                 Playlist::create($contentDto->toArray());
             }
             return true;
-        }catch (\Exception $e){dd($e);
+        }catch (\Exception $e){
             return $e;
         }
     }

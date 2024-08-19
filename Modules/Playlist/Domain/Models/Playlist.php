@@ -27,6 +27,7 @@ class Playlist extends Model
         'asset_id',
         'section',
         'position',
+        'created_by'
     ];
 
     /**
@@ -43,5 +44,14 @@ class Playlist extends Model
     public function asset(): HasOne
     {
         return $this->hasOne(Asset::class,'_id','asset_id');
+    }
+
+    /**
+     * User relation
+     * @return HasOne
+     */
+    public function created_by(): HasOne
+    {
+        return $this->hasOne(User::class,'_id','created_by');
     }
 }
