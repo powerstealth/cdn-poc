@@ -239,8 +239,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         //set the width
         $width=$quality->value;
         //set the 16:9 with letterbox
-        $height=(int)$width/16*9;
-        $fLetterbox = "scale=".($width+1).":".($height-1).":force_original_aspect_ratio=decrease,pad=".($width+1).":".($height-1).":(ow-iw)/2:(oh-ih)/2";
+        $height=(int)($width/16*9);
+        $fLetterbox="scale={$width}:{$height}:force_original_aspect_ratio=decrease,pad={$width}:{$height}:(ow-iw)/2:(oh-ih)/2";
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
             ->exportFramesByInterval($this->_frameInterval)
@@ -255,7 +255,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     /**
      * Move the original file
      * @param string $key
-     * @param string $fileExtension
+     * @param string $originalFile
      * @return void
      */
     private function _moveOriginalFile(string $key, string $originalFile):void
