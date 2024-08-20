@@ -161,10 +161,12 @@ class AssetRepository implements AssetRepositoryInterface
             //add filters
             if(count($filters)>0){
                 foreach ($filters as $filter){
-                    if($filter[1]=="in"){
-                        $assets=$assets->whereIn($filter[0],(is_array($filter[2]) ? $filter[2] : [$filter[2]]));
-                    }else{
-                        $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                    if($filter[2]!==null){
+                        if($filter[1]=="in"){
+                            $assets=$assets->whereIn($filter[0],(is_array($filter[2]) ? $filter[2] : [$filter[2]]));
+                        }else{
+                            $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                        }
                     }
                 }
             }
