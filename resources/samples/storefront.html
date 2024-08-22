@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://vjs.zencdn.net/8.16.1/video-js.css" rel="stylesheet" />
+    <title>Storefront</title>
+</head>
+<body>
+    <div>
+        <video id="vply" class="video-player-videojs video-js vjs-default-skin"></video>
+    </div>
+    <script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>
+    <script src="https://staging-clyuptv.clyup.com/wp-content/plugins/elementor-clyup-video-player/widgets/assets/js/videojs-concat/videojs-plugin-concat.min.js?ver=1.0.0" id="videojs-concat-plugin-js"></script>
+    <script>
+        window.addEventListener('load', function () {
+            // VideoJs options
+            let options = {
+                autoplay: true,
+                muted: true,
+                controls: false,
+                fluid: true,
+                loop: true
+            };
+            let player = videojs("vply", options);
+
+            // API call to fetch the streaming URLs
+            const apiUrl = "http://localhost:10006/api/1.0/playlist/virtual-show/66967a53a91c8ee10c0fd1b2/stream";
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    // Extract streaming URLs
+                    const assets = data.map(item => ({
+                        url: item.streaming_url,
+                        mimeType: "application/x-mpegURL"
+                    }));
+
+                    let concatOptions = {
+                        manifests: assets,
+                        callback: (err, result) => {
+                            if (err) {
+                                console.error(err);
+                                return;
+                            }
+                            player.src({
+                                src: `data:application/vnd.videojs.vhs+json,${JSON.stringify(result.manifestObject)}`,
+                                type: 'application/vnd.videojs.vhs+json'
+                            });
+                        }
+                    };
+                    player.concat(concatOptions);
+                })
+                .catch(error => {
+                    console.error('Error fetching streaming URLs:', error);
+                });
+        });
+    </script>
+</body>
+</html>
