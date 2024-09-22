@@ -361,14 +361,23 @@ class AssetService
 
     /**
      * Update the asset
-     * @param string    $id
-     * @param array     $data
-     * @param bool|null $published
+     * @param string      $id
+     * @param array       $data
+     * @param bool|null   $published
+     * @param string|null $verification
      * @return array
      */
-    public function updateAsset(string $id, array $data, ?bool $published):array{
+    public function updateAsset(string $id, array $data, ?bool $published, ?string $verification):array{
         //update the asset
-        $data=$this->assetRepository->updateAsset($id,$data,null,$published);
+        $user=auth('sanctum')->user();
+        $data=$this->assetRepository->updateAsset(
+            $id,
+            $data,
+            null,
+            $published,
+            null,
+            ($user===null || $user->hasRole('admin')) ? $verification : null
+        );
         //set visibility
         if($published!==null)
             $this->_setPhysicalAssetVisibility($id,$published);

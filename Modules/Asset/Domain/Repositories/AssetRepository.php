@@ -211,6 +211,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string|null $status
      * @param bool|null   $published
      * @param array|null  $mediaInfo
+     * @param string|null $verification
      * @return Asset|\Exception
      */
     public function updateAsset(

@@ -13,6 +13,7 @@ class AssetUpdateDto extends Data
      * @param string|null $description
      * @param array|null  $tags
      * @param bool|null   $published
+     * @param string|null $verification
      */
     #[MapName(SnakeCaseMapper::class)]
     public function __construct(
@@ -21,6 +22,7 @@ class AssetUpdateDto extends Data
         public ?string $description,
         public ?array $tags,
         public ?bool $published,
+        public ?string $verification,
     ){}
 
     /**
@@ -35,6 +37,7 @@ class AssetUpdateDto extends Data
             $request->description,
             $request->tags,
             $request->published,
+            $request->verification,
         );
     }
 }

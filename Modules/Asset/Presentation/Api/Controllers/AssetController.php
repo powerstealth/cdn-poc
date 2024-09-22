@@ -109,7 +109,7 @@ class AssetController extends Controller
      */
     public function updateAsset(AssetUpdateRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->updateAsset($request->data()->id, $request->data()->toArray(), $request->data()->published);
+        $response=$this->assetService->updateAsset($request->data()->id, $request->data()->toArray(), $request->data()->published, $request->data()->verification);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
