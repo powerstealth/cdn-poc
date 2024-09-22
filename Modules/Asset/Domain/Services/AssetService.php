@@ -5,6 +5,7 @@ namespace Modules\Asset\Domain\Services;
 use Carbon\Carbon;
 use Aws\S3\S3Client;
 use Illuminate\Support\Str;
+use Modules\Asset\Domain\Enums\AssetVerificationEnum;
 use STS\ZipStream\Facades\Zip;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -85,7 +86,7 @@ class AssetService
     public function setUploadSession(string $fileName, int $fileLength):array{
         $fileName=Str::orderedUuid();
         $presignedUrl = Storage::disk('s3_ingest')->temporaryUploadUrl($fileName, now()->addMinutes(60));
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",[],$fileName,null,null,[$presignedUrl["url"]],$fileLength,auth('sanctum')->user()->id);
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,"","",[],$fileName,null,null,[$presignedUrl["url"]],$fileLength,auth('sanctum')->user()->id,AssetVerificationEnum::IN_VERIFYING->name);
         return [
             "success"=>true,
             "message"=>"",
@@ -168,7 +169,8 @@ class AssetService
         //sign the urls
         $urls=$this->_signMultipartUpload($result['UploadId'],$key,$parts);
         //create the asset
-        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$data->tags??[],$originalFileName,$key,$result['UploadId'],$urls,$fileLength,auth('sanctum')->user()->id);
+        $verify=(string)(isset($data->tags["SCOPE"]) && in_array("CLYUP_SELECTED_FOR_TV",$data->tags["SCOPE"])) ? AssetVerificationEnum::IN_VERIFYING->name : AssetVerificationEnum::VERIFIED->name;
+        $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$data->tags??[],$originalFileName,$key,$result['UploadId'],$urls,$fileLength,auth('sanctum')->user()->id,$verify);
         //return
         return [
             "success"=>true,

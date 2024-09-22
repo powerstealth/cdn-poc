@@ -34,6 +34,7 @@ class Asset extends Model
         'media_info',
         'owner_id',
         'published',
+        'verification'
     ];
 
     protected $appends = ['media'];

@@ -17,11 +17,12 @@ return new class extends Migration
          * assets
          */
         Schema::create('assets', function (Blueprint $table) {
-            $table->string('status',100)->index();
+            $table->string('status',50)->index();
             $table->string('data.title',254)->index();
             $table->longText('data.description');
             $table->string('ingest.s3.presigned_url');
             $table->integer('ingest.file_length');
+            $table->string('verification',50)->index();
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
             $table->softDeletes();

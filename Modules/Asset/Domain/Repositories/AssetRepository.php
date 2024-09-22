@@ -27,6 +27,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param array       $presignedUrls
      * @param int         $fileLength
      * @param string      $owner
+     * @param string      $verified
      * @param bool        $published
      * @return Asset|\Exception
      */
@@ -41,12 +42,14 @@ class AssetRepository implements AssetRepositoryInterface
         array $presignedUrls,
         int $fileLength,
         string $owner,
+        string $verification,
         bool $published=false,
     ): Asset|\Exception{
         $asset=new Asset();
         $asset->owner_id=new \MongoDB\BSON\ObjectId($owner);
         $asset->published=$published;
         $asset->status=$status;
+        $asset->verification=$verification;
         $asset->file_name=$fileName;
         $asset->data=[
             'title'=>$title,
@@ -215,7 +218,8 @@ class AssetRepository implements AssetRepositoryInterface
         ?array $data,
         ?string $status,
         ?bool $published=null,
-        ?array $mediaInfo=null
+        ?array $mediaInfo=null,
+        ?string $verification=null
     ):Asset|\Exception
     {
         try {
@@ -232,7 +236,6 @@ class AssetRepository implements AssetRepositoryInterface
                 throw new \Exception("The asset is not available");
             //set the data
             $assetDataDto=new AssetDataDto($data["title"] ?? null,$data["description"] ?? null,$data["tags"] ?? null);
-
             $asset->data=[
                 'title'=>$assetDataDto->title !== null ? $assetDataDto->title : $asset->data['title'] ?? null,
                 'description'=>$assetDataDto->description !== null ? $assetDataDto->description : $asset->data['description'] ?? null,
@@ -250,11 +253,15 @@ class AssetRepository implements AssetRepositoryInterface
             //set the status
             if($status!==null)
                 $asset->status=$status;
+            //set the asset's verification
+            if($verification!==null)
+                $asset->verification=$verification;
             //set the published status
             if(isset($published) && $published!==null)
                 $asset->published=$published;
             //set media info
-            if($mediaInfo!==null) $asset->media_info=$mediaInfo;
+            if($mediaInfo!==null)
+                $asset->media_info=$mediaInfo;
             //save
             $asset->save();
             return $asset;

@@ -8,6 +8,7 @@ use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Enums\AssetVerificationEnum;
 use Modules\Asset\Domain\Enums\FrameQualitiesEnum;
 use Modules\Asset\Domain\Enums\TranscodingQualityBitrateEnum;
 use Modules\Asset\Domain\Traits\S3Trait;
