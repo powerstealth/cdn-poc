@@ -17,9 +17,9 @@ Route::prefix('1.0')->group(function () {
     Route::middleware(AuthIp::class)
         ->prefix('/playlist/virtual-show')
         ->group(function () {
-        Route::get('/stream',[PlaylistController::class,'streamVirtualShowPlaylist']);
-        Route::get('/{user}/stream',[PlaylistController::class,'streamVirtualShowPlaylist']);
-    });
+            Route::get('/stream',[PlaylistController::class,'streamVirtualShowPlaylist']);
+            Route::get('/{user}/stream',[PlaylistController::class,'streamVirtualShowPlaylist']);
+        });
     //Get a playlist
     Route::get('/playlist/{section}',[PlaylistController::class,'getPlaylist'])
         ->middleware(AuthSanctum::class,'role:admin');

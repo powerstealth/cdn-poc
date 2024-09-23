@@ -75,10 +75,29 @@ class PlaylistService
      * Playlist streaming
      * @param string      $section
      * @param string|null $userId
+     * @param bool        $userMandatory
      * @return array
      */
-    public function streamPlaylist(string $section, ?string $userId = null):array{
-        $data=$this->playlistRepository->getPlaylist($section,$userId);
+    public function streamPlaylist(string $section, ?string $userId = null, bool $userMandatory = false):array{
+        //check user
+        $user=null;
+        if(preg_match('/^[0-9a-f]{24}$/i', $userId)){
+            $user=$userId;
+        }elseif(is_numeric($userId)){
+            $user=User::where("magento_user_id",$userId)->first();
+            if(isset($user->magento_user_id))
+                $user=$user->_id;
+        }
+        if($userMandatory && $user===null)
+            return [
+                "success"=>false,
+                "message"=>"User unknown",
+                "data"=>null,
+                "error"=>null,
+                "response_status"=>400
+            ];
+        //select playlist
+        $data=$this->playlistRepository->getPlaylist($section, $user);
         $playlist=[];
         foreach ($data as $item)
             $playlist[] = new PlaylistStreamDto(

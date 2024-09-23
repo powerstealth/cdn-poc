@@ -286,7 +286,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         $data = json_decode($output, true);
         if ($data !== null && isset($data['media']['track'])) {
             //Update asset
-            $this->assetRepository->updateAsset($this->assetId,null,null,null,null,$data['media']['track']);
+            $this->assetRepository->updateAsset($this->assetId,null,null,null,$data['media']['track']);
         }
     }
 

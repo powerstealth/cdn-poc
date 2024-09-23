@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller as Controller;
+use Modules\Auth\Domain\Models\User;
 use Modules\Playlist\Domain\Services\PlaylistService;
 use Modules\Playlist\Presentation\Api\Requests\GetPersonalPlaylistRequest;
 use Modules\Playlist\Presentation\Api\Requests\SetPlaylistRequest;
@@ -76,23 +77,20 @@ class PlaylistController extends Controller
 
     /**
      * Stream the Virtual Show
-     * @param VirtualShowRequest $request
+     * @param Request $request
      * @return JsonResponse|null
      */
     public function streamVirtualShowPlaylist(Request $request):null|JsonResponse
     {
-        if($request->user === null){
-            $resource=[];
+        $response=$this->playlistService->streamPlaylist(
+            'virtual-show',
+            $request->user,
+            true
+        );
+        if($response["success"] === true){
+            $resource=$response["data"];
         }else{
-            $response=$this->playlistService->streamPlaylist(
-                'virtual-show',
-                $request->user
-            );
-            if($response["success"] === true){
-                $resource=$response["data"];
-            }else{
-                $resource=[];
-            }
+            $resource=[];
         }
         return response()->json($resource,200);
     }
