@@ -27,7 +27,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param array       $presignedUrls
      * @param int         $fileLength
      * @param string      $owner
-     * @param string      $verified
+     * @param string      $verification
      * @param bool        $published
      * @return Asset|\Exception
      */
