@@ -175,7 +175,13 @@ class AssetRepository implements AssetRepositoryInterface
                         if($filter[1]=="in"){
                             $assets=$assets->whereIn($filter[0],(is_array($filter[2]) ? $filter[2] : [$filter[2]]));
                         }else{
-                            $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                            try {
+                                $assets=$assets->where(function($query) use ($filter){
+                                    $query->orWhere($filter[0],$filter[1],$filter[2])->orWhere($filter[0],$filter[1],new \MongoDB\BSON\ObjectId($filter[2]));
+                                });
+                            }catch (\Exception $e){
+                                $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                            }
                         }
                     }
                 }

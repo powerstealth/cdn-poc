@@ -119,7 +119,8 @@ class PlaylistService
 
     /**
      * Check playlist items
-     * @param array $items
+     * @param array  $items
+     * @param string $user
      * @return bool
      */
     private function _checkPrivatePlaylist(array $items, string $user):bool{
