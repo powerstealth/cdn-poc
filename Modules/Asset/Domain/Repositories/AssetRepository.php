@@ -105,32 +105,39 @@ class AssetRepository implements AssetRepositoryInterface
      * @param bool        $hard
      * @return bool
      */
-    public function deleteAsset(string $id, ?string $status=null, bool $hard=false):bool
+    public function deleteAsset(string $id, ?string $status=null, bool $hard=false):bool|\Exception
     {
-        //get user
-        $user=auth('sanctum')->user();
-        //get the asset
-        $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
-        //filter by user
-        if($user!==null && !$user->hasRole('admin'))
-            $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
-        //find
-        $asset=$asset->first();
-        //set status
-        if(isset($asset->status) && $asset->status!==null){
-            $asset->status=$status;
-        }
-        //set published
-        $asset->published=false;
-        //save the asset
-        $asset->save();
-        //check hard or soft delete
-        if($hard){
-            $asset->forceDelete();
-            return true;
-        }else{
-            $asset->delete();
-            return true;
+        try {
+            //get user
+            $user=auth('sanctum')->user();
+            //get the asset
+            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
+            //filter by user
+            if($user!==null && !$user->hasRole('admin'))
+                $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
+            //find
+            $asset=$asset->first();
+            //check if the asset exists
+            if($asset===null)
+                throw new \Exception("The asset doesn't exist");
+            //set status
+            if(isset($asset->status) && $asset->status!==null){
+                $asset->status=$status;
+            }
+            //set published
+            $asset->published=false;
+            //save the asset
+            $asset->save();
+            //check hard or soft delete
+            if($hard){
+                $asset->forceDelete();
+                return true;
+            }else{
+                $asset->delete();
+                return true;
+            }
+        }catch (\Exception $e){
+            return $e;
         }
     }
 
