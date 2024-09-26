@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
+use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
 class PurgeExpiredUploads
@@ -55,8 +56,8 @@ class PurgeExpiredUploads
                 ["status","=",AssetStatusEnum::UPLOAD->name],
                 ["created_at","<",Carbon::now()->subSeconds(env("AWS_PRESIGNED_TIME"))]
             ];
-            $assets=$assetRepository->listAssets(0,100,'_id','asc',$filters);
-            if(count($assets["data"])>0){
+            $assets=$assetRepository->listAssets(0,100,'_id','asc',$filters,null,AssetTrashedStatusEnum::WITHTRASHED, false);
+            if(isset($assets["data"]) && count($assets["data"])>0){
                 foreach ($assets["data"] as $asset){
                     $assetRepository->deleteAsset($asset["_id"],AssetStatusEnum::ERROR->name);
                 }

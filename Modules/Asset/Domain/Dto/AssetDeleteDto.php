@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Modules\Download\Domain\Dto\MapName;
 use Modules\Download\Domain\Dto\SnakeCaseMapper;
 
-class DeleteDto extends Data
+class AssetDeleteDto extends Data
 {
     /**
      * Constructor

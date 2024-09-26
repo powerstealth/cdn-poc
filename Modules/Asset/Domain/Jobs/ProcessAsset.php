@@ -8,6 +8,7 @@ use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use Modules\Asset\Domain\Enums\AssetVerificationEnum;
 use Modules\Asset\Domain\Enums\FrameQualitiesEnum;
 use Modules\Asset\Domain\Enums\TranscodingQualityBitrateEnum;
 use Modules\Asset\Domain\Traits\S3Trait;
@@ -239,8 +240,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         //set the width
         $width=$quality->value;
         //set the 16:9 with letterbox
-        $height=(int)$width/16*9;
-        $fLetterbox = "scale=".$width.":".$height.":force_original_aspect_ratio=decrease,pad=".$width.":".$height.":(ow-iw)/2:(oh-ih)/2";
+        $height=(int)($width/16*9);
+        $fLetterbox="scale={$width}:{$height}:force_original_aspect_ratio=decrease,pad={$width}:{$height}:(ow-iw)/2:(oh-ih)/2";
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
             ->exportFramesByInterval($this->_frameInterval)
@@ -255,7 +256,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     /**
      * Move the original file
      * @param string $key
-     * @param string $fileExtension
+     * @param string $originalFile
      * @return void
      */
     private function _moveOriginalFile(string $key, string $originalFile):void
@@ -285,7 +286,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         $data = json_decode($output, true);
         if ($data !== null && isset($data['media']['track'])) {
             //Update asset
-            $this->assetRepository->updateAsset($this->assetId,null,null,null,null,$data['media']['track']);
+            $this->assetRepository->updateAsset($this->assetId,null,null,null,$data['media']['track']);
         }
     }
 

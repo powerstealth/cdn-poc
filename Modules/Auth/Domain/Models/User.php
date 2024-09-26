@@ -3,9 +3,12 @@
 namespace Modules\Auth\Domain\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Asset\Domain\Models\Asset;
 use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Relations\BelongsToMany;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Model
@@ -43,4 +46,5 @@ class User extends Model
     {
         return $this->hasRole("admin");
     }
+
 }

@@ -50,10 +50,12 @@ class SetPlaylistRequest extends FormRequest
             'items.required' => 'The items parameter is required',
             'items.array' => 'The items parameter must be an array',
             'items.*.id.required' => 'The item ID is required',
-            'items.*.id.exists' => 'The item ID must exist in the assets',
+            'items.*.id.exists' => 'The item doesn\'t exist',
             'items.*.position.required' => 'The item position is required',
             'items.*.position.numeric' => 'The item position must be a number',
             'items.*.position.min' => 'The item position must be at least 1',
+            'items.*.id.required_with' => 'The payload is not valid',
+            'items.*.position.required_with' => 'The payload is not valid',
         ];
     }
 

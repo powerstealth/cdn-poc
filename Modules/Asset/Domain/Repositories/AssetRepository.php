@@ -27,6 +27,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param array       $presignedUrls
      * @param int         $fileLength
      * @param string      $owner
+     * @param string      $verification
      * @param bool        $published
      * @return Asset|\Exception
      */
@@ -41,12 +42,14 @@ class AssetRepository implements AssetRepositoryInterface
         array $presignedUrls,
         int $fileLength,
         string $owner,
+        string $verification,
         bool $published=false,
     ): Asset|\Exception{
         $asset=new Asset();
         $asset->owner_id=new \MongoDB\BSON\ObjectId($owner);
         $asset->published=$published;
         $asset->status=$status;
+        $asset->verification=$verification;
         $asset->file_name=$fileName;
         $asset->data=[
             'title'=>$title,
@@ -102,32 +105,39 @@ class AssetRepository implements AssetRepositoryInterface
      * @param bool        $hard
      * @return bool
      */
-    public function deleteAsset(string $id, ?string $status=null, bool $hard=false):bool
+    public function deleteAsset(string $id, ?string $status=null, bool $hard=false):bool|\Exception
     {
-        //get user
-        $user=auth('sanctum')->user();
-        //get the asset
-        $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
-        //filter by user
-        if($user!==null && !$user->hasRole('admin'))
-            $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
-        //find
-        $asset=$asset->first();
-        //set status
-        if(isset($asset->status) && $asset->status!==null){
-            $asset->status=$status;
-        }
-        //set published
-        $asset->published=false;
-        //save the asset
-        $asset->save();
-        //check hard or soft delete
-        if($hard){
-            $asset->forceDelete();
-            return true;
-        }else{
-            $asset->delete();
-            return true;
+        try {
+            //get user
+            $user=auth('sanctum')->user();
+            //get the asset
+            $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
+            //filter by user
+            if($user!==null && !$user->hasRole('admin'))
+                $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
+            //find
+            $asset=$asset->first();
+            //check if the asset exists
+            if($asset===null)
+                throw new \Exception("The asset doesn't exist");
+            //set status
+            if(isset($asset->status) && $asset->status!==null){
+                $asset->status=$status;
+            }
+            //set published
+            $asset->published=false;
+            //save the asset
+            $asset->save();
+            //check hard or soft delete
+            if($hard){
+                $asset->forceDelete();
+                return true;
+            }else{
+                $asset->delete();
+                return true;
+            }
+        }catch (\Exception $e){
+            return $e;
         }
     }
 
@@ -161,10 +171,18 @@ class AssetRepository implements AssetRepositoryInterface
             //add filters
             if(count($filters)>0){
                 foreach ($filters as $filter){
-                    if($filter[1]=="in"){
-                        $assets=$assets->whereIn($filter[0],(is_array($filter[2]) ? $filter[2] : [$filter[2]]));
-                    }else{
-                        $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                    if($filter[2]!==null){
+                        if($filter[1]=="in"){
+                            $assets=$assets->whereIn($filter[0],(is_array($filter[2]) ? $filter[2] : [$filter[2]]));
+                        }else{
+                            try {
+                                $assets=$assets->where(function($query) use ($filter){
+                                    $query->orWhere($filter[0],$filter[1],$filter[2])->orWhere($filter[0],$filter[1],new \MongoDB\BSON\ObjectId($filter[2]));
+                                });
+                            }catch (\Exception $e){
+                                $assets=$assets->where($filter[0],$filter[1],$filter[2]);
+                            }
+                        }
                     }
                 }
             }
@@ -206,6 +224,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string|null $status
      * @param bool|null   $published
      * @param array|null  $mediaInfo
+     * @param string|null $verification
      * @return Asset|\Exception
      */
     public function updateAsset(
@@ -213,7 +232,8 @@ class AssetRepository implements AssetRepositoryInterface
         ?array $data,
         ?string $status,
         ?bool $published=null,
-        ?array $mediaInfo=null
+        ?array $mediaInfo=null,
+        ?string $verification=null
     ):Asset|\Exception
     {
         try {
@@ -230,7 +250,6 @@ class AssetRepository implements AssetRepositoryInterface
                 throw new \Exception("The asset is not available");
             //set the data
             $assetDataDto=new AssetDataDto($data["title"] ?? null,$data["description"] ?? null,$data["tags"] ?? null);
-
             $asset->data=[
                 'title'=>$assetDataDto->title !== null ? $assetDataDto->title : $asset->data['title'] ?? null,
                 'description'=>$assetDataDto->description !== null ? $assetDataDto->description : $asset->data['description'] ?? null,
@@ -248,11 +267,15 @@ class AssetRepository implements AssetRepositoryInterface
             //set the status
             if($status!==null)
                 $asset->status=$status;
+            //set the asset's verification
+            if($verification!==null)
+                $asset->verification=$verification;
             //set the published status
             if(isset($published) && $published!==null)
                 $asset->published=$published;
             //set media info
-            if($mediaInfo!==null) $asset->media_info=$mediaInfo;
+            if($mediaInfo!==null)
+                $asset->media_info=$mediaInfo;
             //save
             $asset->save();
             return $asset;

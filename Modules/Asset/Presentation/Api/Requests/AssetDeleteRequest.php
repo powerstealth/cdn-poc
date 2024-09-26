@@ -2,7 +2,7 @@
 
 namespace Modules\Asset\Presentation\Api\Requests;
 
-use Modules\Asset\Domain\Dto\DeleteDto;
+use Modules\Asset\Domain\Dto\AssetDeleteDto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -42,11 +42,11 @@ class AssetDeleteRequest extends FormRequest
 
     /**
      * DTO Mapper
-     * @return DeleteDto
+     * @return AssetDeleteDto
      */
-    public function data():DeleteDto
+    public function data():AssetDeleteDto
     {
-        return DeleteDto::fromRequest($this);
+        return AssetDeleteDto::fromRequest($this);
     }
 
 }
