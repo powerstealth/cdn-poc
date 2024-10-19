@@ -17,8 +17,8 @@ class AuthIp
     public function handle(Request $request, Closure $next): Response
     {
         try{
-            $blockIps = env("IP_WHITELIST");
-            if (!in_array($request->ip(), explode(",",$blockIps))) {
+            $blockReferrals = env("REFERRALS");
+            if (strpos($blockReferrals,$request->header('referer'))!==false) {
                 throw new \Exception("Unauthorized");
             }else
                 return $next($request);
