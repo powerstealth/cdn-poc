@@ -74,15 +74,19 @@ class AssetRepository implements AssetRepositoryInterface
     /**
      * Get an asset
      * @param string $id
-     * @return Asset|null
+     * @param bool   $withTrashed
+     * @return Asset|\Exception
      */
-    public function getAsset(string $id):Asset|\Exception
+    public function getAsset(string $id, bool $withTrashed=false):Asset|\Exception
     {
         try {
             //get user
             $user=auth('sanctum')->user();
             //get asset
             $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->with(['owner']);
+            //get the thrashed items
+            if($withTrashed)
+                $asset->withTrashed();
             //filter by user
             if($user!==null && !$user->hasRole('admin'))
                 $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));

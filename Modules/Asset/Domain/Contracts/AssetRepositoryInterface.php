@@ -21,7 +21,7 @@ interface AssetRepositoryInterface
         string $verification,
         bool $published
     ): Asset|\Exception;
-    public function getAsset(string $id): Asset|\Exception;
+    public function getAsset(string $id, bool $withTrashed): Asset|\Exception;
     public function isAssetPublished(string $id): bool|\Exception;
     public function updateAsset(string $id, ?array $data, ?string $status, ?bool $published, ?array $mediaInfo, ?string $verification): Asset|\Exception;
     public function setAssetBasePath(string $id, string $basePath): bool|\Exception;

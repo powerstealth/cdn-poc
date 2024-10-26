@@ -438,13 +438,20 @@ class AssetService
 
     /**
      * Delete an asset
-     * @param string  $id
-     * @param bool $hard
+     * @param string $id
+     * @param bool   $hard
      * @return array
      */
-    public function deleteAsset(string $id,bool $hard=false):array{
-        if($hard) //remove physical files
-            $this->_purgeAsset($id);
+    public function deleteAsset(string $id, bool $hard=false):array{
+        //get the asset
+        if($hard){
+            //get the asset
+            $asset=$this->assetRepository->getAsset($id,true);
+            if(!$asset instanceof \Exception && $asset!=null){
+                //remove physical files
+                $this->_purgeAsset($id,$asset->base_path);
+            }
+        }
         //remove asset
         $data=$this->assetRepository->deleteAsset($id,null,$hard);
         if($data instanceof \Exception){
@@ -620,14 +627,15 @@ class AssetService
 
     /**
      * Purge asset
+     * @param string $basePath
      * @param string $assetId
      * @return void
      */
-    private function _purgeAsset(string $assetId):void
+    private function _purgeAsset(string $assetId, string $basePath):void
     {
         $objects = $this->s3Client->listObjectsV2([
             'Bucket' => env("AWS_BUCKET_MEDIA"),
-            'Prefix' => $assetId."/",
+            'Prefix' => $basePath.$assetId."/",
         ]);
         if ($objects['KeyCount'] > 0) {
             $objectsToDelete = [];
