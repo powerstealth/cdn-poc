@@ -488,8 +488,13 @@ class AssetService
      */
     public function canStreamAsset(string $assetId, bool $json=true):false|string|array
     {
+        //get the asset
+        $asset=$this->assetRepository->getAsset($assetId);
+        if($asset instanceof \Exception || $asset==null){
+            return false;
+        }
         //set base stream
-        $stream=$assetId."/stream/index.m3u8";
+        $stream=$asset->base_path.$assetId."/stream/index.m3u8";
         //check if the asset is published
         if($this->assetRepository->isAssetPublished($assetId)){
             $url=env("AWS_MEDIA_URL").$stream;
@@ -527,7 +532,7 @@ class AssetService
     {
         //check the asset
         $asset=$this->assetRepository->getAsset($assetId);
-        if($asset instanceof \Exception){
+        if($asset instanceof \Exception || $asset==null){
             $requestData=[
                 "success"=>false,
                 "message"=>"An error was occurred",
@@ -540,7 +545,7 @@ class AssetService
                 "success"=>true,
                 "message"=>"",
                 "data"=>[
-                    "private_url" => Storage::disk('s3_media')->temporaryUrl($asset->_id."/original/".$asset->ingest["file"]["original_filename"], now()->addMinutes(120))
+                    "private_url" => Storage::disk('s3_media')->temporaryUrl($asset->base_path.$asset->_id."/original/".$asset->ingest["file"]["original_filename"], now()->addMinutes(120))
                 ],
                 "error"=>null,
                 "response_status"=>200
@@ -558,7 +563,7 @@ class AssetService
     {
         //check the asset
         $asset=$this->assetRepository->getAsset($assetId);
-        if($asset instanceof \Exception){
+        if($asset instanceof \Exception || $asset==null){
             return [
                 "success"=>false,
                 "message"=>"An error was occurred",
@@ -568,14 +573,13 @@ class AssetService
             ];
         }else{
             try {
-                $s3Frames = Storage::disk('s3_media')->files($asset->_id."/frames/HD");
+                $s3Frames = Storage::disk('s3_media')->files($asset->base_path.$asset->_id."/frames/HD");
                 if(count($s3Frames)>0){
                     $zip=Zip::create($asset->_id.'_hd_frames.zip');
                     foreach ($s3Frames as $frame){
                         $zip->add(Storage::disk('s3_media')->temporaryUrl($frame, now()->addSeconds(300)), $frame);
                     }
-
-                    $zip->saveToDisk("s3_media",$asset->_id."/frames");
+                    $zip->saveToDisk("s3_media",$asset->base_path.$asset->_id."/frames");
                 }
             }catch (\Exception $e){
                 return [
@@ -590,7 +594,7 @@ class AssetService
                 "success"=>true,
                 "message"=>"",
                 "data"=>[
-                    "private_url" => Storage::disk('s3_media')->temporaryUrl($asset->_id."/frames/".$asset->_id.'_hd_frames.zip', now()->addMinutes(15))
+                    "private_url" => Storage::disk('s3_media')->temporaryUrl($asset->base_path.$asset->_id."/frames/".$asset->_id.'_hd_frames.zip', now()->addMinutes(15))
                 ],
                 "error"=>null,
                 "response_status"=>200

@@ -98,36 +98,45 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                 //the file length is ok then check if is a video
                 $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
                 if($this->_isVideo($tempUrl)){
+                    //generate base path
+                    $basePath=date("Y")."/".date("m")."/".date("d")."/".date("h");
                     //create presigned Url
                     $presignedUrl = $this->_generatePresignedUrl($key);
                     //get media info
                     $this->_getMediaInfo($presignedUrl);
                     //create tile
-                    $this->_createTile($presignedUrl);
+                    $this->_createTile($basePath, $presignedUrl);
                     //create HD frames
-                    $this->_createFrames($presignedUrl, FrameQualitiesEnum::HD);
+                    $this->_createFrames($basePath, $presignedUrl, FrameQualitiesEnum::HD);
                     //create SD frames
-                    $this->_createFrames($presignedUrl, FrameQualitiesEnum::SD);
+                    $this->_createFrames($basePath, $presignedUrl, FrameQualitiesEnum::SD);
                     //create thumbnails frames
-                    $this->_createFrames($presignedUrl, FrameQualitiesEnum::THUMBNAIL);
+                    $this->_createFrames($basePath, $presignedUrl, FrameQualitiesEnum::THUMBNAIL);
                     //convert video to HLS
-                    $this->_convertVideoToHls($presignedUrl);
+                    $this->_convertVideoToHls($basePath, $presignedUrl);
                     //move the original file
-                    $this->_moveOriginalFile($key,$asset->file_name);
+                    $this->_moveOriginalFile($basePath, $key, $asset->file_name);
                 }else{
                     throw new \Exception("The file is not a video");
                 }
             }else{
                 throw new \Exception("The file length is wrong. Upload it again.");
             }
+            //update the asset's metadata
             $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::COMPLETED->name);
+            //set the base path
+            $this->assetRepository->setAssetBasePath($this->assetId,$basePath);
         }catch (\Exception $e){
             //on error
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
+            //set the base path
+            $this->assetRepository->setAssetBasePath($this->assetId,$basePath);
             $this->fail($e);
         }catch (\Error $e){
             //on error
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
+            //set the base path
+            $this->assetRepository->setAssetBasePath($this->assetId,$basePath);
             $this->fail($e);
         }
     }
@@ -168,10 +177,11 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
 
     /**
      * Convert a video to HLS
+     * @param string $basePath
      * @param string $tempUrl
      * @return void
      */
-    private function _convertVideoToHls(string $tempUrl):void
+    private function _convertVideoToHls(string $basePath, string $tempUrl):void
     {
         //get video
         $video=FFMpeg::openUrl($tempUrl);
@@ -206,36 +216,38 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                 $media->addFilter($profile['size']);
             });
         }
-        $transcoder->save($this->assetId.'/stream/index.m3u8');
+        $transcoder->save($basePath.$this->assetId.'/stream/index.m3u8');
     }
 
     /**
      * Create the tile
+     * @param string $basePath
      * @param string $tempUrl
      * @return void
      */
-    private function _createTile(string $tempUrl):void
+    private function _createTile(string $basePath, string $tempUrl):void
     {
         //set the transcoder
         $transcoder=FFMpeg::openUrl($tempUrl)
-            ->exportTile(function (TileFactory $factory) {
+            ->exportTile(function (TileFactory $factory) use ($basePath){
                 $factory->interval($this->_frameInterval)
                     ->scale(320, 180)
                     ->grid(5, 2)
-                    ->generateVTT($this->assetId.'/tile/tile.vtt');
+                    ->generateVTT($basePath.$this->assetId.'/tile/tile.vtt');
             })
             ->toDisk('s3_media');
         //save
-        $transcoder->save($this->assetId.'/tile/tile_%05d.jpg');
+        $transcoder->save($basePath.$this->assetId.'/tile/tile_%05d.jpg');
     }
 
     /**
      * Create the frames
+     * @param string             $basePath
      * @param string             $tempUrl
      * @param FrameQualitiesEnum $quality
      * @return void
      */
-    private function _createFrames(string $tempUrl, FrameQualitiesEnum $quality):void
+    private function _createFrames(string $basePath, string $tempUrl, FrameQualitiesEnum $quality):void
     {
         //set the width
         $width=$quality->value;
@@ -250,23 +262,24 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             })
             ->toDisk('s3_media');
         //save
-        $transcoder->save($this->assetId.'/frames/'.$quality->name.'/frame_%05d.jpg');
+        $transcoder->save($basePath.$this->assetId.'/frames/'.$quality->name.'/frame_%05d.jpg');
     }
 
     /**
      * Move the original file
+     * @param string $basePath
      * @param string $key
      * @param string $originalFile
      * @return void
      */
-    private function _moveOriginalFile(string $key, string $originalFile):void
+    private function _moveOriginalFile(string $basePath, string $key, string $originalFile):void
     {
         //set the source
         $source=Storage::disk('s3_ingest')->get($key);
         //move
         Storage::disk('s3_media')
             ->put(
-                $this->assetId."/original/".$originalFile,
+                $basePath.$this->assetId."/original/".$originalFile,
                 $source,
                 [
                     'ContentDisposition' => 'attachment',

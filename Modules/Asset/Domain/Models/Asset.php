@@ -34,7 +34,8 @@ class Asset extends Model
         'media_info',
         'owner_id',
         'published',
-        'verification'
+        'verification',
+        'base_path'
     ];
 
     protected $appends = ['media'];
@@ -51,22 +52,22 @@ class Asset extends Model
         //random signature
         $signature=md5(microtime().rand(10000,99999));
         //check the frames availability
-        if(Storage::disk('s3_media')->exists($this->_id.'/frames/HD/frame_custom.jpg'))
+        if(Storage::disk('s3_media')->exists($this->base_path.$this->_id.'/frames/HD/frame_custom.jpg'))
             $frame='frame_custom.jpg';
-        elseif(Storage::disk('s3_media')->exists($this->_id.'/frames/HD/frame_custom.jpg'))
+        elseif(Storage::disk('s3_media')->exists($this->base_path.$this->_id.'/frames/HD/frame_custom.jpg'))
             $frame='frame_00003.jpg';
         else
             $frame='frame_00001.jpg';
         $frame.="?".$signature;
         //set the frame's qualities
         $keyFrames=[
-            'HD' => env("AWS_MEDIA_URL").$this->_id."/frames/HD/".$frame,
-            'SD' => env("AWS_MEDIA_URL").$this->_id."/frames/SD/".$frame,
-            'THUMBNAIL' => env("AWS_MEDIA_URL").$this->_id."/frames/THUMBNAIL/".$frame,
+            'HD' => env("AWS_MEDIA_URL").$this->base_path.$this->_id."/frames/HD/".$frame,
+            'SD' => env("AWS_MEDIA_URL").$this->base_path.$this->_id."/frames/SD/".$frame,
+            'THUMBNAIL' => env("AWS_MEDIA_URL").$this->base_path.$this->_id."/frames/THUMBNAIL/".$frame,
         ];
         //set the DTO
         $media=new AssetMediaDto(
-            env("AWS_MEDIA_URL").$this->_id."/stream/index.m3u8",
+            env("AWS_MEDIA_URL").$this->base_path.$this->_id."/stream/index.m3u8",
             $keyFrames
         );
         return $media->toArray();

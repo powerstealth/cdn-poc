@@ -25,7 +25,7 @@ class PlaylistRepository implements PlaylistRepositoryInterface
             $playlistItems = [];
             //select
             $contents=Playlist::select('*')
-                ->with(['asset:_id,data'])
+                ->with(['asset:_id,data,base_path'])
                 ->where('section',$section);
             //filter by user
             if($user!==null)

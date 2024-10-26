@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('status',50)->index();
             $table->string('data.title',254)->index();
             $table->longText('data.description');
+            $table->string('base_path',254);
             $table->string('ingest.s3.presigned_url');
             $table->integer('ingest.file_length');
             $table->string('verification',50)->index();
