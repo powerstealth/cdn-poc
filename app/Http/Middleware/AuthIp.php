@@ -17,11 +17,20 @@ class AuthIp
     public function handle(Request $request, Closure $next): Response
     {
         try{
-            $blockReferrals = env("REFERRALS");
-            if (strpos($blockReferrals,$request->header('referer'))!==false) {
-                throw new \Exception("Unauthorized");
-            }else
+            $blockReferrals = env("REFERRALS", '');
+            if (empty($blockReferrals)) {
                 return $next($request);
+            }
+            $referer = $request->header('referer');
+            $ip = $request->ip();
+            $allowedList = array_map('trim', explode(',', $blockReferrals));
+            if (
+                (!empty($referer) && in_array($referer, $allowedList)) ||
+                (!empty($ip) && in_array($ip, $allowedList))
+            ) {
+                return $next($request);
+            }
+            throw new \Exception("Unauthorized");
         }catch (\Exception $e) {
             // Token could not be parsed
             $resource=AuthResource::from([
