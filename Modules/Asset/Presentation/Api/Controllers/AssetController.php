@@ -133,7 +133,7 @@ class AssetController extends Controller
      */
     public function softDeleteAsset(AssetDeleteRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->deleteAsset($request->data()->id, false);
+        $response=$this->assetService->deleteAsset($request->data()->id);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

@@ -3,6 +3,8 @@ use Illuminate\Support\Facades\Facade;
 
 return [
 
+    'version' => '0.9.0',
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

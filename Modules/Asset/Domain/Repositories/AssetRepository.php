@@ -74,15 +74,19 @@ class AssetRepository implements AssetRepositoryInterface
     /**
      * Get an asset
      * @param string $id
-     * @return Asset|null
+     * @param bool   $withTrashed
+     * @return Asset|\Exception
      */
-    public function getAsset(string $id):Asset|\Exception
+    public function getAsset(string $id, bool $withTrashed=false):Asset|\Exception
     {
         try {
             //get user
             $user=auth('sanctum')->user();
             //get asset
             $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->with(['owner']);
+            //get the thrashed items
+            if($withTrashed)
+                $asset->withTrashed();
             //filter by user
             if($user!==null && !$user->hasRole('admin'))
                 $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
@@ -103,7 +107,7 @@ class AssetRepository implements AssetRepositoryInterface
      * @param string      $id
      * @param string|null $status
      * @param bool        $hard
-     * @return bool
+     * @return bool|\Exception
      */
     public function deleteAsset(string $id, ?string $status=null, bool $hard=false):bool|\Exception
     {
@@ -215,6 +219,24 @@ class AssetRepository implements AssetRepositoryInterface
         }catch (\Exception $e){
             return $e;
         }
+    }
+
+    /**
+     * Set the base path of an asset
+     * @param string $id
+     * @param string $basePath
+     * @return bool|\Exception
+     * @throws \Exception
+     */
+    public function setAssetBasePath(string $id, string $basePath): bool|\Exception
+    {
+        $asset=Asset::find($id);
+        if($asset===null)
+            throw new \Exception("The asset is not available");
+        //set the status
+        $asset->base_path=$basePath;
+        $asset->save();
+        return true;
     }
 
     /**

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Modules\System\Domain\Services\SystemService;
 use App\Http\Controllers\Controller as Controller;
+use Modules\System\Presentation\Api\Requests\PingInfoRequest;
 use Modules\System\Presentation\Api\Requests\SystemRequest;
 use Modules\System\Presentation\Api\Resources\SystemResource;
 
@@ -34,6 +35,17 @@ class SystemController extends Controller
     {
         //get the thumbnail
         $response=$this->systemService->ping();
+        $resource=SystemResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Get version
+     * @param Request $request
+     * @return string|JsonResponse
+     */
+    public function getVersion(Request $request):string|JsonResponse{
+        $response=$this->systemService->getVersion();
         $resource=SystemResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
