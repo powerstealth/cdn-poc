@@ -32,4 +32,20 @@ class SystemService
         ];
     }
 
+    /**
+     * Version command
+     * @return array
+     */
+    public function getVersion():array{
+        return [
+            "success"=>true,
+            "message"=>"",
+            "data"=>[
+                "version"=>config('app.version')
+            ],
+            "error"=>"",
+            "response_status"=>200
+        ];
+    }
+
 }
