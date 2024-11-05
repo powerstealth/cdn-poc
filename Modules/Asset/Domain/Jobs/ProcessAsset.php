@@ -116,6 +116,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                     $this->_convertVideoToHls($basePath, $presignedUrl);
                     //move the original file
                     $this->_moveOriginalFile($basePath, $key, $asset->file_name);
+                    //make a copy of original file and create xml for arkki evo
+                    $this->_saveForArkki($this->assetId, $basePath, $key, $asset->file_name);
                 }else{
                     throw new \Exception("The file is not a video");
                 }
@@ -311,5 +313,58 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
      */
     private function _generatePresignedUrl(string $key, int $minutes=60):string{
         return Storage::disk('s3_ingest')->temporaryUrl($key, now()->addMinutes($minutes));
+    }
+
+    /**
+     * Create a copy of the original file for Arkki with XML
+     * @param        $assetId
+     * @param string $basePath
+     * @param string $key
+     * @param string $originalFile
+     * @return bool
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    private function _saveForArkki($assetId, string $basePath, string $key, string $originalFile):bool
+    {
+        try {
+            //create the xml
+            $asset=$this->assetRepository->getAsset($assetId);
+            if($asset===null)
+                throw new \Exception("Asset $assetId not found");
+            //set xml
+            $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><asset></asset>');
+            //add type
+            $xml->addChild('type', env('ARKKI_TYPE'));
+            //add metadata parent
+            $metadata = $xml->addChild('metadata');
+            //add id, title, description and owner
+            $metadata->addChild('clyup_id', $asset['_id'] ?? '');
+            $metadata->addChild('title', $asset['data']['title'] ?? $asset['file_name']);
+            $metadata->addChild('description', $asset['data']['description'] ?? "");
+            $metadata->addChild('owner', $asset['owner_id'] ?? "");
+            //save xml to the sync storage for Arkki
+            $xmlContent = $xml->asXML();
+            $fullPathXml = env('ARKKI_MEDIA_STORAGE').$asset->_id.".xml";
+            Storage::disk('s3_media')->put(
+                $fullPathXml,
+                $xmlContent,
+                [
+                    'ContentType' => 'application/xml',
+                    'ContentDisposition' => 'attachment',
+                ]
+            );
+            //save original video to the sync storage for Arkki
+            Storage::disk('s3_media')->put(
+                env('ARKKI_MEDIA_STORAGE').$this->assetId.'.'.pathinfo($originalFile, PATHINFO_EXTENSION),
+                $basePath.$this->assetId."/original/".$originalFile,
+                [
+                    'ContentDisposition' => 'attachment',
+                ]
+            );
+            return true;
+        }catch (\Exception $e){
+            return false;
+        }
     }
 }
