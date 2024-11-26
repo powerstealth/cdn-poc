@@ -25,7 +25,10 @@ class AuthIp
             $ip = $request->ip();
             $allowedList = array_map('trim', explode(',', $blockReferrals));
             if (
-                (!empty($referer) && in_array($referer, $allowedList)) ||
+                // Check if referrer domain (or full URL) is in allowed list
+                (!empty($referer) && array_filter($allowedList, fn($item) => strpos(parse_url($referer, PHP_URL_HOST), $item) !== false)) ||
+
+                // Check if IP is in allowed list
                 (!empty($ip) && in_array($ip, $allowedList))
             ) {
                 return $next($request);
