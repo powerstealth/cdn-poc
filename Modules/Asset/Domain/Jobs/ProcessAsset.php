@@ -346,6 +346,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             //save xml to the sync storage for Arkki
             $xmlContent = $xml->asXML();
             $fullPathXml = env('ARKKI_MEDIA_STORAGE').$asset->_id.".xml";
+            Log::channel('arkki')->info($fullPathXml);
+            Log::channel('arkki')->info($xmlContent);
             Storage::disk('s3_media')->put(
                 $fullPathXml,
                 $xmlContent,
@@ -371,8 +373,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             }
             return true;
         }catch (\Exception $e){
-            Log::error($e->getMessage());
-            Log::error($e->getTraceAsString());
+            Log::channel('arkki')->error($e->getMessage());
+            Log::channel('arkki')->error($e->getTraceAsString());
             return false;
         }
     }
