@@ -56,7 +56,7 @@ class AssetUpdateRequest extends FormRequest
      * DTO Mapper
      * @return AssetUpdateDto
      */
-    public function data():AssetUpdateDto
+    public function dto():AssetUpdateDto
     {
         return AssetUpdateDto::fromRequest($this);
     }

@@ -54,7 +54,7 @@ class AssetUploadSessionRequest extends FormRequest
      * DTO Mapper
      * @return AssetUploadSessionDto
      */
-    public function data():AssetUploadSessionDto
+    public function dto():AssetUploadSessionDto
     {
         return AssetUploadSessionDto::fromRequest($this);
     }

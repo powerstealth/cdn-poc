@@ -104,7 +104,7 @@ class PlaylistController extends Controller
     public function setPlaylist(SetPlaylistRequest $request, string $section):null|JsonResponse
     {
         $response=$this->playlistService->setPlaylistContents(
-            $request->data()->items,
+            $request->dto()->items,
             $section,
             auth('sanctum')->user()->id
         );
@@ -120,7 +120,7 @@ class PlaylistController extends Controller
     public function setVirtualShowPlaylist(SetPlaylistRequest $request):null|JsonResponse
     {
         $response=$this->playlistService->setPlaylistContents(
-            $request->data()->items,
+            $request->dto()->items,
             'virtual-show',
             auth('sanctum')->user()->id
         );

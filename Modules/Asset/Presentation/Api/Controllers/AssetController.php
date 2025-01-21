@@ -44,8 +44,8 @@ class AssetController extends Controller
     public function setUploadSession(AssetUploadSessionRequest $request):null|JsonResponse
     {
         $response=$this->assetService->setUploadSession(
-            $request->data()->file_name,
-            $request->data()->file_length,
+            $request->dto()->file_name,
+            $request->dto()->file_length,
         );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
@@ -59,12 +59,12 @@ class AssetController extends Controller
     public function multipartUpload(AssetMultipartUploadRequest $request):null|JsonResponse
     {
         $response=$this->assetService->setMultipartUpload(
-            $request->data()->task,
-            $request->data()->file_name,
-            $request->data()->file_length,
-            $request->data()->asset_id,
-            $request->data()->parts,
-            $request->data()->data,
+            $request->dto()->task,
+            $request->dto()->file_name,
+            $request->dto()->file_length,
+            $request->dto()->asset_id,
+            $request->dto()->parts,
+            $request->dto()->data,
         );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
@@ -78,13 +78,13 @@ class AssetController extends Controller
     public function getAssets(AssetListRequest $request):null|JsonResponse
     {
         $response=$this->assetService->getAssets(
-            $request->data()->page,
-            $request->data()->limit,
-            $request->data()->sortField,
-            $request->data()->sortOrder,
-            $request->data()->filters,
-            $request->data()->search,
-            $request->data()->setPagination
+            $request->dto()->page,
+            $request->dto()->limit,
+            $request->dto()->sortField,
+            $request->dto()->sortOrder,
+            $request->dto()->filters,
+            $request->dto()->search,
+            $request->dto()->setPagination
         );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
@@ -97,7 +97,7 @@ class AssetController extends Controller
      */
     public function getAsset(AssetInfoRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->getAsset($request->data()->id);
+        $response=$this->assetService->getAsset($request->dto()->id);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
@@ -109,7 +109,12 @@ class AssetController extends Controller
      */
     public function updateAsset(AssetUpdateRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->updateAsset($request->data()->id, $request->data()->toArray(), $request->data()->published, $request->data()->verification);
+        $response=$this->assetService->updateAsset(
+            $request->dto()->id,
+            $request->dto()->toArray(),
+            $request->dto()->published,
+            $request->dto()->verification
+        );
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
@@ -133,7 +138,7 @@ class AssetController extends Controller
      */
     public function softDeleteAsset(AssetDeleteRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->deleteAsset($request->data()->id);
+        $response=$this->assetService->deleteAsset($request->dto()->id);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
@@ -145,7 +150,7 @@ class AssetController extends Controller
      */
     public function hardDeleteAsset(AssetDeleteRequest $request):null|JsonResponse
     {
-        $response=$this->assetService->deleteAsset($request->data()->id, true);
+        $response=$this->assetService->deleteAsset($request->dto()->id, true);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
@@ -158,12 +163,12 @@ class AssetController extends Controller
     public function streamAsset(AssetInfoRequest $request):RedirectResponse|JsonResponse
     {
         //check availability
-        $response=$this->assetService->canStreamAsset($request->data()->id, $request->data()->json);
+        $response=$this->assetService->canStreamAsset($request->dto()->id, $request->dto()->json);
         //response
         if($response===false){
             return response()->json([],401);
         }else{
-            if(!$request->data()->json){
+            if(!$request->dto()->json){
                 return redirect($response);
             }else{
                 $resource=AssetResource::from($response);
@@ -180,7 +185,7 @@ class AssetController extends Controller
     public function downloadOriginalAsset(AssetInfoRequest $request):JsonResponse
     {
         //check availability
-        $response=$this->assetService->downloadAsset($request->data()->id);
+        $response=$this->assetService->downloadAsset($request->dto()->id);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }
@@ -193,7 +198,7 @@ class AssetController extends Controller
     public function downloadAssetFrames(AssetInfoRequest $request):JsonResponse
     {
         //check availability
-        $response=$this->assetService->downloadAssetFrames($request->data()->id);
+        $response=$this->assetService->downloadAssetFrames($request->dto()->id);
         $resource=AssetResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

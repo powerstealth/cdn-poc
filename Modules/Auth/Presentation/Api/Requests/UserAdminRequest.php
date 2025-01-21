@@ -46,7 +46,7 @@ class UserAdminRequest extends FormRequest
     /**
      * @return UserAdminDto
      */
-    public function data():UserAdminDto
+    public function dto():UserAdminDto
     {
         return UserAdminDto::fromRequest($this);
     }

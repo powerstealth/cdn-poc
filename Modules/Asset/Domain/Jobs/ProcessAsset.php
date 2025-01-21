@@ -340,8 +340,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             $metadata = $xml->addChild('metadata');
             //add id, title, description and owner
             $metadata->addChild('clyup_id', $asset['_id'] ?? '');
-            $metadata->addChild('title', $asset['data']['title'] ?? $asset['file_name']);
-            $metadata->addChild('description', $asset['data']['description'] ?? "");
+            $metadata->addChild('asset-title', $asset['data']['title'] ?? $asset['file_name']);
+            $metadata->addChild('asset-description', $asset['data']['description'] ?? "");
             $metadata->addChild('owner', $asset['owner_id'] ?? "");
             //save xml to the sync storage for Arkki
             $xmlContent = $xml->asXML();

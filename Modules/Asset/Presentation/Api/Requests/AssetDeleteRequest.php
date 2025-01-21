@@ -44,7 +44,7 @@ class AssetDeleteRequest extends FormRequest
      * DTO Mapper
      * @return AssetDeleteDto
      */
-    public function data():AssetDeleteDto
+    public function dto():AssetDeleteDto
     {
         return AssetDeleteDto::fromRequest($this);
     }

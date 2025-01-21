@@ -64,7 +64,7 @@ class AssetMultipartUploadRequest extends FormRequest
      * DTO Mapper
      * @return AssetMultipartUploadDto
      */
-    public function data():AssetMultipartUploadDto
+    public function dto():AssetMultipartUploadDto
     {
         return AssetMultipartUploadDto::fromRequest($this);
     }

@@ -70,7 +70,7 @@ class AuthController extends Controller
                 "response_status"=>403
             ];
         }else{
-            $response=$this->authService->setUserAdmin($request->id, $request->data()->is_admin);
+            $response=$this->authService->setUserAdmin($request->id, $request->dto()->is_admin);
         }
         $resource=AuthResource::from($response);
         return response()->json($resource,$resource->responseStatus);
@@ -84,13 +84,13 @@ class AuthController extends Controller
     public function getUsers(UsersListRequest $request):null|JsonResponse
     {
         $response=$this->authService->getUsers(
-            $request->data()->page,
-            $request->data()->limit,
-            $request->data()->sortField,
-            $request->data()->sortOrder,
-            $request->data()->filters,
-            $request->data()->search,
-            $request->data()->setPagination
+            $request->dto()->page,
+            $request->dto()->limit,
+            $request->dto()->sortField,
+            $request->dto()->sortOrder,
+            $request->dto()->filters,
+            $request->dto()->search,
+            $request->dto()->setPagination
         );
         $resource=AuthResource::from($response);
         return response()->json($resource,$resource->responseStatus);

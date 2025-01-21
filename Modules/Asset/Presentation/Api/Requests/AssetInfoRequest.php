@@ -44,7 +44,7 @@ class AssetInfoRequest extends FormRequest
      * DTO Mapper
      * @return InfoDto
      */
-    public function data():InfoDto
+    public function dto():InfoDto
     {
         return InfoDto::fromRequest($this);
     }

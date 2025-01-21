@@ -63,7 +63,7 @@ class SetPlaylistRequest extends FormRequest
      * DTO
      * @return SetPlaylistDto
      */
-    public function data():SetPlaylistDto
+    public function dto():SetPlaylistDto
     {
         return SetPlaylistDto::fromRequest($this);
     }

@@ -54,7 +54,7 @@ class UsersListRequest extends FormRequest
     /**
      * @return ListDto
      */
-    public function data():ListDto
+    public function dto():ListDto
     {
         return ListDto::fromRequest($this);
     }
