@@ -339,10 +339,10 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             //add metadata parent
             $metadata = $xml->addChild('metadata');
             //add id, title, description and owner
-            $metadata->addChild('clyup_id', $asset['_id'] ?? '');
+            $metadata->addChild('clyupid', $asset['_id'] ?? '');
             $metadata->addChild('asset-title', $asset['data']['title'] ?? $asset['file_name']);
             $metadata->addChild('asset-description', $asset['data']['description'] ?? "");
-            $metadata->addChild('owner', $asset['owner_id'] ?? "");
+            $metadata->addChild('asset-owner', $asset['owner_id'] ?? "");
             //save xml to the sync storage for Arkki
             $xmlContent = $xml->asXML();
             $fullPathXml = env('ARKKI_MEDIA_STORAGE').$asset->_id.".xml";
@@ -355,15 +355,24 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                 ]
             );
             //save original video to the sync storage for Arkki
-            Storage::disk('s3_media')->put(
-                env('ARKKI_MEDIA_STORAGE').$this->assetId.'.'.pathinfo($originalFile, PATHINFO_EXTENSION),
-                $basePath.$this->assetId."/original/".$originalFile,
-                [
-                    'ContentDisposition' => 'attachment',
-                ]
-            );
+            $sourcePath = $basePath . $this->assetId . "/original/" . $originalFile;
+            $destinationPath = env('ARKKI_MEDIA_STORAGE') . $this->assetId . '.' . pathinfo($originalFile, PATHINFO_EXTENSION);
+            if (Storage::disk('s3_media')->exists($sourcePath)) {
+                // Copy the file to S3
+                Storage::disk('s3_media')->put(
+                    $destinationPath,
+                    Storage::disk('s3_media')->get($sourcePath),
+                    [
+                        'ContentDisposition' => 'attachment',
+                    ]
+                );
+            } else {
+                throw new Exception("Source file does not exist: " . $sourcePath);
+            }
             return true;
         }catch (\Exception $e){
+            Log::error($e->getMessage());
+            Log::error($e->getTraceAsString());
             return false;
         }
     }
