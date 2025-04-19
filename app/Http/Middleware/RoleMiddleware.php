@@ -16,9 +16,12 @@ class RoleMiddleware
     public function handle($request, Closure $next, ?string $role=""): Response
     {
         //Check the role
-        if (! auth('sanctum')->user()->hasRole($role)) {
+        try {
+            if (! auth('sanctum')->user()->hasRole($role))
+                throw new \Exception('Unauthorized');
+            return $next($request);
+        }catch (\Exception $exception){
             return response()->json(['error' => 'Forbidden'], 403);
         }
-        return $next($request);
     }
 }

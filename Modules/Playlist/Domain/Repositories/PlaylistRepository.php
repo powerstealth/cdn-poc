@@ -45,7 +45,7 @@ class PlaylistRepository implements PlaylistRepositoryInterface
     }
 
     /**
-     * Set a Virtual Show playlist
+     * Set a Virtual Show playlist in the Storefront
      * @param array       $items
      * @param string      $section
      * @param string      $user
@@ -58,8 +58,12 @@ class PlaylistRepository implements PlaylistRepositoryInterface
             Playlist::where('section',$section)->where('created_by',new \MongoDB\BSON\ObjectId($user))->forceDelete();
             //populate
             foreach ($items as $item) {
-                $contentDto=new PlaylistItemDataDto(new \MongoDB\BSON\ObjectId($item["id"]),$section,(int)$item["position"],new \MongoDB\BSON\ObjectId($user));
-                Playlist::create($contentDto->toArray());
+                if(isset($item["id"]) && isset($item["position"])){
+                    $contentDto=new PlaylistItemDataDto(new \MongoDB\BSON\ObjectId($item["id"]),$section,(int)$item["position"],new \MongoDB\BSON\ObjectId($user));
+                    Playlist::create($contentDto->toArray());
+                }else{
+                    throw new \Exception("The items are not set correctly");
+                }
             }
             return true;
         }catch (\Exception $e){

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Asset\Domain\Contracts;
+namespace Modules\Playlist\Domain\Contracts;
 
 interface EnumInterface
 {

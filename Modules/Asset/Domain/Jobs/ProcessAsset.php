@@ -8,15 +8,21 @@ use FFMpeg\Format\Video\X264;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use Modules\Asset\Domain\Enums\AssetVerificationEnum;
+use Modules\Asset\Domain\Enums\AssetScopeEnum;
+use Modules\Asset\Domain\Enums\AssetTrashedStatusEnum;
 use Modules\Asset\Domain\Enums\FrameQualitiesEnum;
 use Modules\Asset\Domain\Enums\TranscodingQualityBitrateEnum;
+use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Traits\S3Trait;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Modules\Asset\Domain\Enums\AssetStatusEnum;
+use Modules\Auth\Domain\Models\User;
+use Modules\Auth\Domain\Repositories\AuthRepository;
+use Modules\Playlist\Domain\Enums\PlaylistSectionEnum;
+use Modules\Playlist\Domain\Repositories\PlaylistRepository;
 use ProtoneMedia\LaravelFFMpeg\Filters\TileFactory;
 use Modules\Asset\Domain\Repositories\AssetRepository;
 
@@ -57,11 +63,11 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
      */
     protected string $assetId;
 
-    /**
-     * Downloaded Repository
-     * @var AssetRepository
-     */
     protected AssetRepository $assetRepository;
+
+    protected AuthRepository $authRepository;
+
+    protected PlaylistRepository $playlistRepository;
 
     /**
      * Constructor
@@ -71,6 +77,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     {
         $this->assetId=$assetId;
         $this->assetRepository=app(AssetRepository::class);
+        $this->authRepository=app(AuthRepository::class);
+        $this->playlistRepository=app(PlaylistRepository::class);
     }
 
     /**
@@ -79,66 +87,71 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
     public function handle()
     {
         try {
-            //update the asset's status
+            // Update the asset's status
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::PROCESS->name);
-            //get the file info from DB
+            // Get the file info from DB
             $asset=$this->assetRepository->getAsset($this->assetId);
             $key=(string)$asset->ingest['s3']['key'];
             $fileLength=(int)$asset->ingest['file']['length'];
-            //get the file from S3 ingest bucket
+            // Get the file from S3 ingest bucket
             $s3Client=self::initS3Client();
             $file = $s3Client->getObject([
                 'Bucket' => env("AWS_BUCKET_INGEST"),
                 'Key'    => $key,
             ]);
-            //check the file length
+            // Check the file length
             if($fileLength==$file["ContentLength"]){
-                //update the asset's status
+                // Update the asset's status
                 $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::PROCESSING->name);
-                //the file length is ok then check if is a video
+                // The file length is ok then check if is a video
                 $tempUrl = Storage::disk('s3_ingest')->temporaryUrl($key, now()->addSeconds(30));
                 if($this->_isVideo($tempUrl)){
-                    //generate base path
+                    // Generate base path
                     $basePath=date("Y")."/".date("m")."/".date("d")."/".date("h");
-                    //create presigned Url
+                    // Create presigned Url
                     $presignedUrl = $this->_generatePresignedUrl($key);
-                    //get media info
+                    // Get media info
                     $this->_getMediaInfo($presignedUrl);
-                    //create tile
+                    // Create tile
                     $this->_createTile($basePath, $presignedUrl);
-                    //create HD frames
+                    // Create HD frames
                     $this->_createFrames($basePath, $presignedUrl, FrameQualitiesEnum::HD);
-                    //create SD frames
+                    // Create SD frames
                     $this->_createFrames($basePath, $presignedUrl, FrameQualitiesEnum::SD);
-                    //create thumbnails frames
+                    // Create thumbnails frames
                     $this->_createFrames($basePath, $presignedUrl, FrameQualitiesEnum::THUMBNAIL);
-                    //convert video to HLS
+                    // Convert video to HLS
                     $this->_convertVideoToHls($basePath, $presignedUrl);
-                    //move the original file
+                    // Move the original file
                     $this->_moveOriginalFile($basePath, $key, $asset->file_name);
-                    //make a copy of original file and create xml for arkki evo
+                    // Delete all user's storefront video
+                    $this->_deleteAllFrontStoreVideoForUser($this->assetId);
+                    // Set this video for the storefront
+                    $this->_attachAssetToUserPlaylist($this->assetId);
+                    // Move a copy of original file and create xml for arkki evo
                     $this->_saveForArkki($this->assetId, $basePath, $key, $asset->file_name);
+
                 }else{
                     throw new \Exception("The file is not a video");
                 }
             }else{
-                throw new \Exception("The file length is wrong. Upload it again.");
+                throw new \Exception("The file length is wrong, upload it again. Source ".$fileLength." bytes - Destination ".$file["ContentLength"]." bytes");
             }
-            //update the asset's metadata
+            // Update the asset's metadata
             $this->assetRepository->updateAsset($this->assetId,null,AssetStatusEnum::COMPLETED->name);
-            //set the base path
-            $this->assetRepository->setAssetBasePath($this->assetId,$basePath);
+            // Set the base path
+            $this->assetRepository->setAssetBasePath($this->assetId,$basePath ?? '');
         }catch (\Exception $e){
-            //on error
+            // On error
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
-            //set the base path
-            $this->assetRepository->setAssetBasePath($this->assetId,$basePath);
+            // Set the base path
+            $this->assetRepository->setAssetBasePath($this->assetId,$basePath ?? '');
             $this->fail($e);
         }catch (\Error $e){
-            //on error
+            // On error
             $this->assetRepository->updateAsset($this->assetId,null,null,AssetStatusEnum::ERROR->name);
-            //set the base path
-            $this->assetRepository->setAssetBasePath($this->assetId,$basePath);
+            // Set the base path
+            $this->assetRepository->setAssetBasePath($this->assetId,$basePath ?? '');
             $this->fail($e);
         }
     }
@@ -163,18 +176,22 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
      */
     private function _isVideo($url):bool
     {
-        $output = shell_exec(env("MEDIAINFO_PATH")." --Output=JSON \"$url\"");
-        $data = json_decode($output, true);
-        $isVideo = false;
-        if ($data !== null && isset($data['media']['track'])) {
-            foreach ($data['media']['track'] as $track) {
-                if (isset($track['@type']) && $track['@type'] === 'Video') {
-                    $isVideo = true;
-                    break;
+        try {
+            $output = shell_exec(env("MEDIAINFO_PATH")." --Output=JSON \"$url\"");
+            $data = json_decode($output, true);
+            $isVideo = false;
+            if ($data !== null && isset($data['media']['track'])) {
+                foreach ($data['media']['track'] as $track) {
+                    if (isset($track['@type']) && $track['@type'] === 'Video') {
+                        $isVideo = true;
+                        break;
+                    }
                 }
             }
+            return $isVideo;
+        }catch (\Exception $e){
+            return false;
         }
-        return $isVideo;
     }
 
     /**
@@ -185,13 +202,13 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
      */
     private function _convertVideoToHls(string $basePath, string $tempUrl):void
     {
-        //get video
+        // Get video
         $video=FFMpeg::openUrl($tempUrl);
-        //get orientation
+        // Get orientation
         $dimensions=$video->getVideoStream()->getDimensions();
         $width=(int)$dimensions->getWidth();
         $height=(int)$dimensions->getHeight();
-        //set bitrates and sizes
+        // Set bitrates and sizes
         $bitrate=$video->getVideoStream()->get("bit_rate")/1000;
         $profiles['SD'] = [
             'bitrate' => (new X264)->setKiloBitrate(1000),
@@ -212,7 +229,7 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
             ->exportForHLS()
             ->setSegmentLength(5)
             ->toDisk('s3_media');
-        //transcode
+        // Start the transcoding
         foreach($profiles as $profile){
             $transcoder=$transcoder->addFormat($profile['bitrate'], function($media) use ($profile){
                 $media->addFilter($profile['size']);
@@ -375,6 +392,72 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
         }catch (\Exception $e){
             Log::channel('arkki')->error($e->getMessage());
             Log::channel('arkki')->error($e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * Delete all users video for storefront
+     * @param string $assetId
+     * @return bool
+     */
+    private function _deleteAllFrontStoreVideoForUser(string $assetId): bool {
+        try {
+            // Get video
+            $asset = $this->assetRepository->getAsset($assetId);
+            if(!$asset instanceof Asset) {
+                throw new \Exception("Asset $assetId not found");
+            }
+            // Get the user
+            $user=$this->authRepository->getUserById($asset->owner_id);
+            if(!$user instanceof User) {
+                throw new \Exception("User not found");
+            }
+            // Get all user's frontstore video
+            $filters = [
+                ["owner_id","=",$user->_id],
+            ];
+            $assets = $this->assetRepository->listAssets(0,500,"_id","asc",$filters,null,AssetTrashedStatusEnum::WITHTRASHED,false);
+            foreach ($assets as $item) {
+                if(
+                    isset($item['tags']['SCOPE']) &&
+                    $item['tags']['SCOPE']==AssetScopeEnum::CLYUP_STOREFRONT->value &&
+                    $item['_id'] !== $assetId
+                )
+                    $this->assetRepository->deleteAsset($item['_id'],null,true);
+            }
+            return true;
+        }catch (\Exception $e){
+            return false;
+        }
+    }
+
+    /**
+     * Attach the asset to user's playlist
+     * @param string $assetId
+     * @return bool
+     */
+    private function _attachAssetToUserPlaylist(string $assetId): bool {
+        try {
+            // Get video
+            $asset = $this->assetRepository->getAsset($assetId);
+            if(!$asset instanceof Asset) {
+                throw new \Exception("Asset $assetId not found");
+            }
+            // Get the user
+            $user=$this->authRepository->getUserById($asset->owner_id);
+            if(!$user instanceof User) {
+                throw new \Exception("User not found");
+            }
+            $this->playlistRepository->setPlaylist(
+                [
+                    ["id"=>$assetId, "position"=>0]
+                ],
+                PlaylistSectionEnum::VIRTUAL_SHOW->value,
+                $user->_id
+            );
+            return true;
+        }catch (\Exception $e){
             return false;
         }
     }

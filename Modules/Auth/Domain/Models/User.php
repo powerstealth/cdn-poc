@@ -44,7 +44,11 @@ class User extends Model
      */
     public function getIsAdminAttribute():bool
     {
-        return $this->hasRole("admin");
+        try {
+            return $this->hasRole("admin");
+        }catch (\Exception $exception){
+            return false;
+        }
     }
 
 }

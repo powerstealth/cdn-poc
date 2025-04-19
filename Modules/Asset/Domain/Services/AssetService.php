@@ -5,7 +5,11 @@ namespace Modules\Asset\Domain\Services;
 use Carbon\Carbon;
 use Aws\S3\S3Client;
 use Illuminate\Support\Str;
+use Modules\Asset\Domain\Enums\AssetScopeEnum;
+use Modules\Asset\Domain\Enums\AssetUploadEnum;
 use Modules\Asset\Domain\Enums\AssetVerificationEnum;
+use Modules\Asset\Domain\Models\Asset;
+use Modules\Asset\Domain\Traits\MediaFileTrait;
 use STS\ZipStream\Facades\Zip;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +29,7 @@ use Modules\Asset\Domain\Repositories\AssetRepository;
 
 class AssetService
 {
-    use S3Trait;
+    use S3Trait, MediaFileTrait;
 
     protected AssetRepository $assetRepository;
     protected PurgeExpiredUploads $purgeExpiredUploads;
@@ -119,10 +123,10 @@ class AssetService
     ):array{
         try {
             switch ($task){
-                case 'start':{
+                case AssetUploadEnum::START->value:{
                     return $this->_startMultipartUpload($parts,$originalFileName,$fileLength,AssetDataDto::from($data));
                 }
-                case 'complete':{
+                case AssetUploadEnum::COMPLETE->value:{
                     return $this->_completeMultipartUpload($assetId);
                 }
                 default:{throw new \Exception("The task doesn't exist");break;}
@@ -169,7 +173,11 @@ class AssetService
         //sign the urls
         $urls=$this->_signMultipartUpload($result['UploadId'],$key,$parts);
         //create the asset
-        $verify=(string)(isset($data->tags["SCOPE"]) && in_array("CLYUP_SELECTED_FOR_TV",$data->tags["SCOPE"])) ? AssetVerificationEnum::IN_VERIFYING->name : AssetVerificationEnum::VERIFIED->name;
+        $verify=(string)(
+            isset($data->tags["SCOPE"]) && (
+                AssetScopeEnum::CLYUP_SELECTED_FOR_TV->value == $data->tags["SCOPE"]
+            )
+        ) ? AssetVerificationEnum::IN_VERIFYING->name : AssetVerificationEnum::VERIFIED->name;
         $asset=$this->assetRepository->createAssetFromUpload(AssetStatusEnum::UPLOAD->name,$data->title??"",$data->description??"",$data->tags??[],$originalFileName,$key,$result['UploadId'],$urls,$fileLength,auth('sanctum')->user()->id,$verify);
         //return
         return [
@@ -213,20 +221,20 @@ class AssetService
      * @throws \Exception
      */
     public function _completeMultipartUpload(string $assetId):array{
-        //check if the asset exists
+        // Check if the asset exists
         $asset=$this->assetRepository->getAsset($assetId);
-        //get key and upload ID
+        // Get key and upload ID
         $key=$asset->ingest["s3"]["key"];
         $uploadId=$asset->ingest["s3"]["upload_id"];
         if($key==null || $uploadId==null)
             throw new \Exception("Can't process the asset as multipart upload");
-        //get upload ID
+        // Get upload ID
         $uploadedParts = $this->s3Client->listParts([
             'Bucket'    => env("AWS_BUCKET_INGEST"),
             'Key'       => $key,
             'UploadId'  => $uploadId,
         ]);
-        //merge parts
+        // Merge parts
         $parts=[];
         if(isset($uploadedParts["Parts"])){
             foreach ($uploadedParts["Parts"] as $uploadedPart) {
@@ -236,7 +244,7 @@ class AssetService
                 ];
             }
         }
-        //complete the multipart upload
+        // Complete the multipart upload
         $this->s3Client->completeMultipartUpload(
             [
                 'Bucket'          => env("AWS_BUCKET_INGEST"),
@@ -247,16 +255,57 @@ class AssetService
                 ],
                 'visibility' => 'public',
         ]);
-        //set asset status
-        $this->assetRepository->updateAsset($assetId,null,AssetStatusEnum::UPLOADED->name);
-        //run process job
-        ProcessAsset::dispatch($assetId)->onQueue(env("WORKER_ID"));
-        return [
-            "success"=>true,
-            "message"=>"The file has been uploaded successfully",
-            "error"=>"",
-            "response_status"=>200
-        ];
+        // Check the asset's length
+        $assetLength = $this->_getAssetLength($asset);
+        if($assetLength instanceof \Exception){
+            // Delete the asset
+            $this->assetRepository->deleteAsset($assetId,null,true);
+            return [
+                "success"=>false,
+                "message"=>"An error occured",
+                "error"=>$assetLength->getMessage(),
+                "response_status"=>400
+            ];
+        }else{
+            // Set asset status
+            $this->assetRepository->updateAsset($assetId,null,AssetStatusEnum::UPLOADED->name);
+            // Run process job
+            ProcessAsset::dispatch($assetId)->onQueue(env("WORKER_ID"));
+            return [
+                "success"=>true,
+                "message"=>"The file has been uploaded successfully",
+                "error"=>"",
+                "response_status"=>200
+            ];
+        }
+    }
+
+    /**
+     * Get asset length
+     * @param Asset $asset
+     * @return int|\Exception
+     */
+    private function _getAssetLength(Asset $asset):int|\Exception
+    {
+        $userProfile = config('user_profiles.profiles')[config('user_profiles.default')];
+        $duration=0;
+        $data=self::fileMediainfo($asset->ingest['s3']['key']);
+        if ($data !== null && isset($data['media']['track'])) {
+            foreach ($data['media']['track'] as $track) {
+                if (
+                    isset($track['@type']) &&
+                    $track['@type'] === 'General' &&
+                    isset($track['Duration'])
+                ) {
+                    $duration = (int)$track['Duration'];
+                    break;
+                }
+            }
+        }
+        if($duration<=0 || $duration>$userProfile['video']['max_length']){
+            return new \Exception("The file duration is incorrect. You can upload a video file up to ".$userProfile['video']['max_length']." seconds long");
+        }else
+            return $duration;
     }
 
     /**

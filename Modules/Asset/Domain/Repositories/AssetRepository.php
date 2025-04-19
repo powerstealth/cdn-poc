@@ -88,7 +88,7 @@ class AssetRepository implements AssetRepositoryInterface
             if($withTrashed)
                 $asset->withTrashed();
             //filter by user
-            if($user!==null && !$user->hasRole('admin'))
+            if($user!==null && !$user->is_admin)
                 $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
             //find
             $asset=$asset->first();
@@ -117,7 +117,7 @@ class AssetRepository implements AssetRepositoryInterface
             //get the asset
             $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))->withTrashed();
             //filter by user
-            if($user!==null && !$user->hasRole('admin'))
+            if($user!==null && !$user->is_admin)
                 $asset->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
             //find
             $asset=$asset->first();
@@ -170,7 +170,7 @@ class AssetRepository implements AssetRepositoryInterface
                 case 2: $assets->onlyTrashed();break;
             }
             //filter by user
-            if($user!==null && !$user->hasRole('admin'))
+            if($user!==null && !$user->is_admin)
                 $assets->where('owner_id',new \MongoDB\BSON\ObjectId($user->id));
             //add filters
             if(count($filters)>0){
@@ -262,7 +262,7 @@ class AssetRepository implements AssetRepositoryInterface
             //get user
             $user=auth('sanctum')->user();
             //get asset
-            if($user===null || $user->hasRole('admin'))
+            if($user===null || $user->is_admin)
                 $asset=Asset::find($id);
             else
                 $asset=Asset::where('_id',new \MongoDB\BSON\ObjectId($id))
