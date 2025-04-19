@@ -1,6 +1,9 @@
 <?php
+use Illuminate\Support\Facades\Facade;
 
 return [
+
+    'version' => '0.9.0',
 
     /*
     |--------------------------------------------------------------------------
@@ -123,4 +126,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'aliases' => Facade::defaultAliases()->merge([
+        'FFMpeg' => ProtoneMedia\LaravelFFMpeg\Support\FFMpeg::class,
+        'Image' => Intervention\Image\Laravel\Facades\Image::class
+    ])->toArray(),
 ];
