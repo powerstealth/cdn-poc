@@ -25,7 +25,7 @@ class AssetMultipartUploadRequest extends FormRequest
         return [
             'task'          => 'required|string|in:'.$this->_multipartUploadTasks(),
             'file_name'     => 'required_if:task,'.AssetUploadEnum::START->value.'|string',
-            'file_length'   => 'required_if:task,'.AssetUploadEnum::START->value.'|integer|min:1000000|max:'.$userProfile['video']['max_upload_size'],
+            'file_length'   => 'required_if:task,'.AssetUploadEnum::START->value.'|integer|min:'.(5 * 1024 * 1024).'|max:'.$userProfile['video']['max_upload_size'],
             'parts'         => 'required_if:task,'.AssetUploadEnum::START->value.'|integer|min:2|max:10000',
             'asset_id'      => 'required_if:task,'.AssetUploadEnum::COMPLETE->value.'|string',
             'data'          => 'array',
