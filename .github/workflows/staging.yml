@@ -55,7 +55,7 @@ jobs:
             sudo chown -R apache: /var/www/html/
             sudo chmod 755 /var/www/html/ -Rf
             sudo php artisan cache:clear
-            systemctl restart nginx
-            systemctl restart php-fpm
-            systemctl restart supervisord
+            sudo systemctl restart nginx
+            sudo systemctl restart php-fpm
+            sudo systemctl restart supervisord
           EOF
