@@ -129,7 +129,7 @@ class AssetService
                 case AssetUploadEnum::COMPLETE->value:{
                     return $this->_completeMultipartUpload($assetId);
                 }
-                default:{throw new \Exception("The task doesn't exist");break;}
+                default:{throw new \Exception("The task doesn't exist");}
             }
         }catch (\Exception $e){
             //set asset with error
