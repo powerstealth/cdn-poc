@@ -4,10 +4,12 @@ namespace Modules\Asset\Domain\Services;
 
 use Carbon\Carbon;
 use Aws\S3\S3Client;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Modules\Asset\Domain\Enums\AssetScopeEnum;
 use Modules\Asset\Domain\Enums\AssetUploadEnum;
 use Modules\Asset\Domain\Enums\AssetVerificationEnum;
+use Modules\Asset\Domain\Mail\UploadMail;
 use Modules\Asset\Domain\Models\Asset;
 use Modules\Asset\Domain\Traits\MediaFileTrait;
 use STS\ZipStream\Facades\Zip;
@@ -260,7 +262,7 @@ class AssetService
         if($assetLength instanceof \Exception){
             // Delete the asset
             $this->assetRepository->deleteAsset($assetId,null,true);
-            return [
+            $ret = [
                 "success"=>false,
                 "message"=>"An error occured",
                 "error"=>$assetLength->getMessage(),
@@ -271,13 +273,32 @@ class AssetService
             $this->assetRepository->updateAsset($assetId,null,AssetStatusEnum::UPLOADED->name);
             // Run process job
             ProcessAsset::dispatch($assetId)->onQueue(env("WORKER_ID"));
-            return [
+            $ret = [
                 "success"=>true,
                 "message"=>"The file has been uploaded successfully",
                 "error"=>"",
                 "response_status"=>200
             ];
         }
+        // Send notify
+        if($asset instanceof Asset){
+            try {
+                $subject = __('messages.new_video_subject');
+                $message = __('messages.new_video_message', [
+                    'name' => $asset->file_name,
+                ]);
+                Mail::to($asset->owner->email)->send(new UploadMail(
+                    $subject,
+                    $message
+                ));
+            }catch (\Exception $e){
+                // continue
+            }
+
+        }
+
+        // Return
+        return $ret;
     }
 
     /**

@@ -6,7 +6,7 @@ use Modules\Asset\Domain\Contracts\EnumInterface as EnumInterface;
 enum AssetVerificationEnum:string implements EnumInterface{
 
     case IN_VERIFYING = 'In verifying';
-    case VERIFIED = 'Verified';
+    case VERIFIED = 'Approved';
     case REJECTED = 'Rejected';
 
     /**
