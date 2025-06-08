@@ -104,7 +104,7 @@ class AuthController extends Controller
      */
     public function signStreamingUrl(SignUrlRequest $request):null|JsonResponse
     {
-        $response=$this->authService->signStreamingUrl($request);
+        $response=$this->authService->signStreamingUrl($request->url);
         $resource=AuthResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

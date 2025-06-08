@@ -57,16 +57,26 @@ trait JwtTrait{
 
     /**
      * Sign Url
-     * @param array $params
+     * @param string $url
      * @return string|null
      */
-    public static function signUrl(array $params):?string{
+    public static function signUrl(string $url):?string{
         $key = new HmacKey(env("JWT_SIGNING_KEY"));
         $signer = new HS256($key);
         try {
             $generator = new Generator($signer);
-            return $generator->generate([]);
-        }catch (\Exception $e){
+
+            $now = time();
+            $exp = $now + (30 * 60); // 30 minutes from now
+
+            $payload = [
+                'url' => $url,
+                'iat' => $now,
+                'exp' => $exp,
+            ];
+
+            return $generator->generate($payload);
+        } catch (\Exception $e) {
             return null;
         }
     }
@@ -81,7 +91,7 @@ trait JwtTrait{
         $signer = new HS256($key);
         try {
             $parser = new Parser($signer);
-            $parsedClaims=$parser->parse($token);
+            $claims=$parser->parse($token);
             return true;
         }catch (\Exception $e){
             return false;

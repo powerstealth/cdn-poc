@@ -163,16 +163,16 @@ class AuthService
 
     /**
      * Sign an Url
-     * @param $request
+     * @param string $url
      * @return array
      */
-    public function signStreamingUrl($request):array
+    public function signStreamingUrl(string $url):array
     {
         return [
             "success"=>true,
             "message"=>"",
             "data"=>[
-                'token'=>self::signUrl($request->toArray())
+                'token'=>self::signUrl($url)
             ],
             "error"=>"",
             "response_status"=>200
