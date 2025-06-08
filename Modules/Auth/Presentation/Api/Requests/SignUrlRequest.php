@@ -26,16 +26,19 @@ class SignUrlRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'success' => false,
-            'message' => 'Error',
+            'message' => 'Validation error',
             'data' => $validator->errors()
-        ],400));
+        ], 400));
     }
 
     /**
      * @return string[]
      */
-    public function messages(){
-        return [];
+    public function messages()
+    {
+        return [
+            'url.required' => 'The URL field is required.',
+            'url.url' => 'The URL must be a valid format.',
+        ];
     }
-
 }

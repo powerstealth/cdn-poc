@@ -92,7 +92,10 @@ trait JwtTrait{
         try {
             $parser = new Parser($signer);
             $claims=$parser->parse($token);
-            return true;
+            if(strcmp(strtolower($claims['url']),strtolower(url()->current())) !== 0 ){
+                return false;
+            }else
+                return true;
         }catch (\Exception $e){
             return false;
         }
