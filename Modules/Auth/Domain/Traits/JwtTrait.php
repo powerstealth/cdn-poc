@@ -65,8 +65,7 @@ trait JwtTrait{
         $signer = new HS256($key);
         try {
             $generator = new Generator($signer);
-            $jwt = $generator->generate([]);
-            return $jwt;
+            return $generator->generate([]);
         }catch (\Exception $e){
             return null;
         }
@@ -83,7 +82,6 @@ trait JwtTrait{
         try {
             $parser = new Parser($signer);
             $parsedClaims=$parser->parse($token);
-            dd($parsedClaims);
             return true;
         }catch (\Exception $e){
             return false;

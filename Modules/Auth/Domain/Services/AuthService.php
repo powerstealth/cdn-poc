@@ -171,7 +171,9 @@ class AuthService
         return [
             "success"=>true,
             "message"=>"",
-            "data"=>self::signUrl($request),
+            "data"=>[
+                'token'=>self::signUrl($request->toArray())
+            ],
             "error"=>"",
             "response_status"=>200
         ];
