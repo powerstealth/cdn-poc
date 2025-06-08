@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \Modules\Auth\Presentation\Api\Controllers\AuthController;
 
+/**
+ * Auth
+ */
 Route::prefix('1.0/auth')->group(function () {
     Route::get('/sso',[AuthController::class,'sso'])->middleware(Sso::class);
     Route::get('/user',[AuthController::class,'userInfo'])->middleware(AuthSanctum::class);
@@ -13,4 +16,7 @@ Route::prefix('1.0/auth')->group(function () {
         ->middleware(AuthSanctum::class,'role:admin');
     Route::post('/users',[AuthController::class,'getUsers'])
         ->middleware(AuthSanctum::class,'role:admin');
+
+    // Sign an url
+    Route::post('/streaming/sign',[AuthController::class,'signStreamingUrl']);
 });

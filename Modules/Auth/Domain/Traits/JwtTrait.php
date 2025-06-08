@@ -3,6 +3,7 @@ namespace Modules\Auth\Domain\Traits;
 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use MiladRahimi\Jwt\Generator;
 use MiladRahimi\Jwt\Parser;
 use MiladRahimi\Jwt\Cryptography\Algorithms\Hmac\HS256;
 use MiladRahimi\Jwt\Cryptography\Keys\HmacKey;
@@ -39,7 +40,7 @@ trait JwtTrait{
     }
 
     /**
-     * Validate a n email
+     * Validate an email
      * @param string $email
      * @return bool
      */
@@ -51,6 +52,41 @@ trait JwtTrait{
             return true; // Valid email
         } else {
             return false; // Invalid email
+        }
+    }
+
+    /**
+     * Sign Url
+     * @param array $params
+     * @return string|null
+     */
+    public static function signUrl(array $params):?string{
+        $key = new HmacKey(env("JWT_SIGNING_KEY"));
+        $signer = new HS256($key);
+        try {
+            $generator = new Generator($signer);
+            $jwt = $generator->generate([]);
+            return $jwt;
+        }catch (\Exception $e){
+            return null;
+        }
+    }
+
+    /**
+     * Check Signed Url
+     * @param string $token
+     * @return bool
+     */
+    public static function checkSignedUrl(string $token):bool{
+        $key = new HmacKey(env("JWT_SIGNING_KEY"));
+        $signer = new HS256($key);
+        try {
+            $parser = new Parser($signer);
+            $parsedClaims=$parser->parse($token);
+            dd($parsedClaims);
+            return true;
+        }catch (\Exception $e){
+            return false;
         }
     }
 }

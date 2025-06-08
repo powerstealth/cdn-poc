@@ -162,6 +162,22 @@ class AuthService
     }
 
     /**
+     * Sign an Url
+     * @param $request
+     * @return array
+     */
+    public function signStreamingUrl($request):array
+    {
+        return [
+            "success"=>true,
+            "message"=>"",
+            "data"=>self::signUrl($request),
+            "error"=>"",
+            "response_status"=>200
+        ];
+    }
+
+    /**
      * Return
      * @param array|\Exception $data
      * @param bool             $setPagination

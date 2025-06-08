@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Modules\Auth\Domain\Services\AuthService;
 use App\Http\Controllers\Controller as Controller;
 use Modules\Auth\Presentation\Api\Requests\AuthRequest;
+use Modules\Auth\Presentation\Api\Requests\SignUrlRequest;
 use Modules\Auth\Presentation\Api\Requests\UserAdminRequest;
 use Modules\Auth\Presentation\Api\Requests\UsersListRequest;
 use Modules\Auth\Presentation\Api\Resources\AuthResource;
@@ -92,6 +93,18 @@ class AuthController extends Controller
             $request->dto()->search,
             $request->dto()->setPagination
         );
+        $resource=AuthResource::from($response);
+        return response()->json($resource,$resource->responseStatus);
+    }
+
+    /**
+     * Sign an Url
+     * @param SignUrlRequest $request
+     * @return JsonResponse|null
+     */
+    public function signStreamingUrl(SignUrlRequest $request):null|JsonResponse
+    {
+        $response=$this->authService->signStreamingUrl($request);
         $resource=AuthResource::from($response);
         return response()->json($resource,$resource->responseStatus);
     }

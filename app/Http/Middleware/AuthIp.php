@@ -4,11 +4,14 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Modules\Auth\Domain\Traits\JwtTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Modules\Auth\Presentation\Api\Resources\AuthResource;
 
 class AuthIp
 {
+    use JwtTrait;
+
     /**
      * Handle an incoming request.
      *
@@ -32,8 +35,13 @@ class AuthIp
                 (!empty($ip) && in_array($ip, $allowedList))
             ) {
                 return $next($request);
+            }else{
+                if ($request->has('token')) {
+                    if(self::checkSignedUrl($request->query('token')))
+                        return $next($request);
+                }
+                throw new \Exception("Unauthorized");
             }
-            throw new \Exception("Unauthorized");
         }catch (\Exception $e) {
             // Token could not be parsed
             $resource=AuthResource::from([
