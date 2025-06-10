@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\Sso;
 use App\Http\Middleware\AuthSanctum;
+use App\Http\Middleware\M2m;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use \Modules\Auth\Presentation\Api\Controllers\AuthController;
@@ -18,5 +19,5 @@ Route::prefix('1.0/auth')->group(function () {
         ->middleware(AuthSanctum::class,'role:admin');
 
     // Sign an url
-    Route::post('/streaming/sign',[AuthController::class,'signStreamingUrl']);
+    Route::post('/streaming/sign',[AuthController::class,'signStreamingUrl'])->middleware(M2m::class);
 });

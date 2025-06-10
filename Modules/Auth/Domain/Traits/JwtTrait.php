@@ -100,4 +100,25 @@ trait JwtTrait{
             return false;
         }
     }
+
+    /**
+     * Validate the JWT
+     * @param string $jwt
+     * @param bool   $returnDecodedJwt
+     * @return bool|array|\Exception
+     */
+    public static function validateJwt(string $jwt, bool $returnDecodedJwt = false):bool|array|\Exception{
+        $key = new HmacKey(env("JWT_SIGNING_KEY"));
+        $signer = new HS256($key);
+        try {
+            $parser = new Parser($signer);
+            $parsedClaims=$parser->parse($jwt);
+            if($returnDecodedJwt)
+                return $parsedClaims;
+            else
+                return true;
+        }catch (\Exception $e){
+            return $e;
+        }
+    }
 }
