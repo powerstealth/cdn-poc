@@ -19,11 +19,17 @@ class M2m
      */
     public function handle(Request $request, Closure $next): Response
     {
-        try{
-            if(self::validateJwt(request()->bearerToken(),false) == true)
-                return $next($request);
-            else
+        try {
+            $jwtClaims = self::validateJwt(request()->bearerToken(), true);
+
+            if ($jwtClaims instanceof \Exception ||
+                !isset($jwtClaims['sub']) ||
+                !in_array($jwtClaims['sub'], explode(',', env('SUBS')))) {
                 throw new \Exception("Unauthorized");
+            }
+
+            return $next($request);
+
         }catch (\Exception $e) {
             // Token could not be parsed
             $resource=AuthResource::from([
