@@ -22,10 +22,20 @@ class M2m
         try {
             $jwtClaims = self::validateJwt(request()->bearerToken(), true);
 
-            if ($jwtClaims instanceof \Exception ||
-                !isset($jwtClaims['sub']) ||
-                !in_array($jwtClaims['sub'], explode(',', env('SUBS')))) {
-                throw new \Exception("Unauthorized");
+            // Error: parsing JWT
+            if ($jwtClaims instanceof \Exception) {
+                throw new \Exception("JWT parsing failed: " . $jwtClaims->getMessage());
+            }
+
+            // Error: JWT is missing 'sub' claim
+            if (!isset($jwtClaims['sub'])) {
+                throw new \Exception("JWT is missing 'sub' claim");
+            }
+
+            // Error: SUBS is wrong
+            $allowedSubs = explode(',', env('SUBS'));
+            if (!in_array($jwtClaims['sub'], $allowedSubs)) {
+                throw new \Exception("Unauthorized 'sub' value: " . $jwtClaims['sub']);
             }
 
             return $next($request);
