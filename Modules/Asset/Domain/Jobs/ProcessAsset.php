@@ -112,6 +112,8 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                     $presignedUrl = $this->_generatePresignedUrl($key);
                     // Get media info
                     $this->_getMediaInfo($presignedUrl);
+                    // Set this video for the storefront
+                    $this->_attachAssetToUserPlaylist($this->assetId);
                     // Create tile
                     $this->_createTile($basePath, $presignedUrl);
                     // Create HD frames
@@ -126,8 +128,6 @@ class ProcessAsset implements ShouldQueue, ShouldBeUnique
                     $this->_moveOriginalFile($basePath, $key, $asset->file_name);
                     // Delete all user's storefront video
                     $this->_deleteAllFrontStoreVideoForUser($this->assetId);
-                    // Set this video for the storefront
-                    $this->_attachAssetToUserPlaylist($this->assetId);
                     // Move a copy of original file and create xml for arkki evo
                     $this->_saveForArkki($this->assetId, $basePath, $key, $asset->file_name);
 
