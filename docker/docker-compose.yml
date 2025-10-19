@@ -1,0 +1,83 @@
+networks:
+  cdn:
+    driver: bridge
+
+services:
+  origin:
+    image: nginx:alpine
+    container_name: origin
+    volumes:
+      - ../origin:/usr/share/nginx/html:ro
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - cdn
+
+  varnish:
+    build:
+      context: ..
+      dockerfile: docker/varnish/Dockerfile
+    platform: linux/amd64  # required on Apple Silicon (M1/M2) hosts
+    container_name: varnish
+    ports:
+      - "6081:6081"
+      - "6082:6082"
+      - "9131:9131"
+    volumes:
+      - ../varnish/default.vcl:/etc/varnish/default.vcl:ro
+    networks:
+      - cdn
+    depends_on:
+      - origin
+
+  haproxy:
+    image: haproxy:2.9
+    container_name: haproxy
+    depends_on:
+      - varnish
+    ports:
+      - "80:80"
+    volumes:
+      - ../haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    networks:
+      - cdn
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    ports:
+      - "9113:9113"
+    command: -nginx.scrape-uri http://origin/status
+    depends_on:
+      - origin
+    networks:
+      - cdn
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus     # persistent Prometheus TSDB storage
+    ports:
+      - "9090:9090"
+    networks:
+      - cdn
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana    # persistent Grafana data directory
+    networks:
+      - cdn
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:
