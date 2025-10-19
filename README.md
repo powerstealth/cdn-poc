@@ -132,6 +132,8 @@ Each denied request should return `403 Forbidden`.
 
 The VCL in `varnish/default.vcl` sets a 120 second TTL and surfaces cache status via the `X-Cache` header (`HIT` or `MISS`). PURGE requests are currently allowed from any IP for testing; restrict the `acl purge` block before using in production.
 
+When a response is served directly from Varnish memory the `X-Cache` header reports `HIT`, meaning the object was cached and returned without reaching the origin. The first request for new content (or any request after the TTL expires or a PURGE) yields `MISS`, forcing Varnish to fetch from the origin before caching the payload. Watching the HIT/MISS flip helps confirm that caching works as expected and highlights items that are uncacheable or expiring too quickly.
+
 ## Metrics
 
 - Prometheus scrapes exporters every 10 seconds (`prometheus/prometheus.yml`).
