@@ -12,6 +12,7 @@ Real-world CDNs blend a robust application layer (caching, routing, observabilit
 
 - **Release:** `v0.1.0-beta`
 - **Stage:** Proof of concept; expect breaking changes and incomplete hardening. Use only for experimentation or evaluation.
+- **Changelog:** See [`CHANGELOG.md`](CHANGELOG.md) for the `beta-poc` highlights.
 
 ## Tags
 
