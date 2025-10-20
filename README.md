@@ -8,7 +8,7 @@ This repository contains a containerized proof of concept for a mini CDN stack. 
 
 Real-world CDNs blend a robust application layer (caching, routing, observability, security) with deep networking features such as Anycast announcements, ASN policies, and BGP traffic engineering. This PoC intentionally focuses on the application side—containerized services, WAF, cache, and monitoring—and does not implement network-level primitives like ASN management, edge PoPs, or BGP peering.
 
-## Release Status
+## Release status
 
 - **Release:** `v0.2.0-beta`
 - **Stage:** Proof of concept; expect breaking changes and incomplete hardening. Use only for experimentation or evaluation.
@@ -23,13 +23,15 @@ Real-world CDNs blend a robust application layer (caching, routing, observabilit
 - Prometheus
 - Grafana
 - Docker Compose
-- Apple Silicon
+- GeoIp
 - Proof of Concept
 
-## Repository Layout
+## Repository layout
 
 ```
 .
+|- assets/
+|  |- GeoLite2-Country.mmdb
 |- docker/
 |  |- docker-compose.yml
 |  |- varnish/
@@ -37,6 +39,7 @@ Real-world CDNs blend a robust application layer (caching, routing, observabilit
 |     |- entrypoint.sh
 |- haproxy/
 |  |- haproxy.cfg
+|  |- geoip.map
 |- nginx/
 |  |- nginx.conf
 |- origin/
@@ -65,7 +68,7 @@ Client
 - **Origin (`nginx/nginx.conf`, `origin/index.html`)** – Runs a static NGINX site, keeps a lightweight `/status` endpoint for scraping, and acts as the ultimate data source behind the cache.
 - **Metrics pipeline** – `nginx/nginx-prometheus-exporter` scrapes the origin at `/status` (port `:9113`), the Varnish exporter exposes cache metrics on `:9131`, Prometheus (`prometheus/prometheus.yml`) scrapes both exporters and persists timeseries (`:9090`), and Grafana renders dashboards and alerts from that data (`:3000`).
 
-### Port Map
+### Port map
 
 - `80` – Public entrypoint (HAProxy + WAF)
 - `6081` / `6082` – Varnish HTTP and admin interfaces
@@ -75,7 +78,7 @@ Client
 - `3000` – Grafana UI (login `admin` / `admin`, change after first use)
 - `1936` – HAProxy stats page
 
-## Getting Started
+## Getting started
 
 Prerequisites: Docker and Docker Compose. This configuration is tuned for Apple Silicon (M1/M2/M3) hosts and pins the Varnish service to `linux/amd64` in `docker/docker-compose.yml`. Running on non-Apple hardware may require adjusting or removing that platform override.
 
@@ -128,7 +131,7 @@ curl -i "http://localhost/?q=%3Cscript%3Ealert(1)%3C/script%3E"
 
 Each denied request should return `403 Forbidden`.
 
-### GeoIP Data
+### GeoIP data
 
 The HAProxy frontend looks up client countries via the CIDR map in `haproxy/geoip.map`. Each line follows `<CIDR> <ISO_CODE>` and the file is bind-mounted into the container at `/usr/local/etc/haproxy/geoip.map`. The map is a “lite” extract generated offline from MaxMind’s GeoLite2 dataset (`assets/GeoLite2-Country.mmdb`) using `mmdbdump` + a short transformation script so that HAProxy can enforce coarse geofencing without reading the binary database at runtime. If you ever need to rebuild it, re-run your mmdb-to-CSV/JSON tool of choice against `assets/GeoLite2-Country.mmdb`, filter to the networks you care about, and overwrite `haproxy/geoip.map` before restarting HAProxy.
 
@@ -143,7 +146,7 @@ docker compose -f docker/docker-compose.yml logs -f haproxy  # confirms the clie
 
 Keep the catch-all (`0.0.0.0/0 unknown`) so lookups always return a value, and review the example entries (`LOCAL`, `TEST`) before moving toward production.
 
-## Cache Behavior
+## Cache behavior
 
 The VCL in `varnish/default.vcl` sets a 120 second TTL and surfaces cache status via the `X-Cache` header (`HIT` or `MISS`). PURGE requests are currently allowed from any IP for testing; restrict the `acl purge` block before using in production.
 
@@ -155,7 +158,7 @@ When a response is served directly from Varnish memory the `X-Cache` header repo
 - HAProxy exposes built-in stats on `:1936` that can be scraped by the HAProxy Prometheus exporter if added later.
 - Grafana uses the persistent `grafana_data` volume to retain dashboards and credentials.
 
-## Development Notes
+## Development notes
 
 - Modify Varnish behavior by editing `varnish/default.vcl` and restarting the service:
   ```bash
