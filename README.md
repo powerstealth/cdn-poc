@@ -1,6 +1,6 @@
 # CDN Proof of Concept
 
-[![Release](https://img.shields.io/badge/release-v0.1.0--beta-orange)](#release-status)
+[![Release](https://img.shields.io/badge/release-v0.2.0--beta-orange)](#release-status)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 [![Status](https://img.shields.io/badge/status-Proof_of_Concept-lightgrey)](#release-status)
 
@@ -10,8 +10,9 @@ Real-world CDNs blend a robust application layer (caching, routing, observabilit
 
 ## Release Status
 
-- **Release:** `v0.1.0-beta`
+- **Release:** `v0.2.0-beta`
 - **Stage:** Proof of concept; expect breaking changes and incomplete hardening. Use only for experimentation or evaluation.
+- **Changelog:** See [`CHANGELOG.md`](CHANGELOG.md) for the `beta-poc` highlights.
 
 ## Tags
 
@@ -127,9 +128,26 @@ curl -i "http://localhost/?q=%3Cscript%3Ealert(1)%3C/script%3E"
 
 Each denied request should return `403 Forbidden`.
 
+### GeoIP Data
+
+The HAProxy frontend looks up client countries via the CIDR map in `haproxy/geoip.map`. Each line follows `<CIDR> <ISO_CODE>` and the file is bind-mounted into the container at `/usr/local/etc/haproxy/geoip.map`. The map is a “lite” extract generated offline from MaxMind’s GeoLite2 dataset (`assets/GeoLite2-Country.mmdb`) using `mmdbdump` + a short transformation script so that HAProxy can enforce coarse geofencing without reading the binary database at runtime. If you ever need to rebuild it, re-run your mmdb-to-CSV/JSON tool of choice against `assets/GeoLite2-Country.mmdb`, filter to the networks you care about, and overwrite `haproxy/geoip.map` before restarting HAProxy.
+
+Quick test: append a `/32` for the address you want to block, restart HAProxy, and curl the site. In this repository we often see requests arriving from GitHub’s NAT at `140.82.121.4`, so the test looks like:
+
+```bash
+echo "140.82.121.4/32 LOCAL" >> haproxy/geoip.map
+docker compose -f docker/docker-compose.yml restart haproxy
+curl -i http://localhost/index.html  # expect HTTP/1.1 403 Forbidden if the ACL blocks LOCAL
+docker compose -f docker/docker-compose.yml logs -f haproxy  # confirms the client IP in the access log
+```
+
+Keep the catch-all (`0.0.0.0/0 unknown`) so lookups always return a value, and review the example entries (`LOCAL`, `TEST`) before moving toward production.
+
 ## Cache Behavior
 
 The VCL in `varnish/default.vcl` sets a 120 second TTL and surfaces cache status via the `X-Cache` header (`HIT` or `MISS`). PURGE requests are currently allowed from any IP for testing; restrict the `acl purge` block before using in production.
+
+When a response is served directly from Varnish memory the `X-Cache` header reports `HIT`, meaning the object was cached and returned without reaching the origin. The first request for new content (or any request after the TTL expires or a PURGE) yields `MISS`, forcing Varnish to fetch from the origin before caching the payload. Watching the HIT/MISS flip helps confirm that caching works as expected and highlights items that are uncacheable or expiring too quickly.
 
 ## Metrics
 

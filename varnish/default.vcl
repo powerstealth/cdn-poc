@@ -1,6 +1,7 @@
 vcl 4.1;
 
 backend default {
+    # Origin sits behind HAProxy on the internal Docker network
     .host = "origin";
     .port = "80";
 }
@@ -11,6 +12,7 @@ acl purge {
 }
 
 sub vcl_recv {
+    # Permit cache invalidation for quick PoC iteration
     if (req.method == "PURGE") {
         if (!client.ip ~ purge) {
             return (synth(405, "Not allowed."));
