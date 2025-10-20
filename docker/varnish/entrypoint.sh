@@ -1,4 +1,6 @@
 #!/bin/bash
+# Lightweight wrapper that keeps varnishd and the Prometheus exporter aligned.
+
 # Start varnishd in the background so the exporter can scrape it later
 varnishd -F -f /etc/varnish/default.vcl -a :6081 -T :6082 -s malloc,256m &
 PID=$!
