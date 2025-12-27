@@ -1,6 +1,0 @@
---2025-04-19 12:54:31--  https://clyup-ingest.s3.de.io.cloud.ovh.net/9eb657bb-8876-4d3f-b2ef-32aedba70da6?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD
-Resolving clyup-ingest.s3.de.io.cloud.ovh.net (clyup-ingest.s3.de.io.cloud.ovh.net)... 141.95.67.80
-Connecting to clyup-ingest.s3.de.io.cloud.ovh.net (clyup-ingest.s3.de.io.cloud.ovh.net)|141.95.67.80|:443... connected.
-HTTP request sent, awaiting response... 403 Forbidden
-2025-04-19 12:54:34 ERROR 403: Forbidden.
-
